@@ -12,17 +12,21 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Missing email or password");
+        }
+
+        const userEmail = credentials.email.toLowerCase();
 
         let user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: userEmail }
         });
 
-        if (!user && credentials.email === "mr.deepanshujoshi@gmail.com") {
+        if (!user && userEmail === "mr.deepanshujoshi@gmail.com") {
           const hashedPassword = await bcrypt.hash("1234567890", 10);
           user = await prisma.user.create({
             data: {
-              email: "mr.deepanshujoshi@gmail.com",
+              email: userEmail,
               name: "Deepanshu Joshi",
               password: hashedPassword,
               role: "ADMIN"
@@ -30,17 +34,39 @@ const handler = NextAuth({
           });
         }
 
-        if (!user) throw new Error("User not found");
+        if (!user) return null;
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isPasswordValid) throw new Error("Invalid password");
+        if (!isPasswordValid) return null;
 
-        return { id: user.id, email: user.email, name: user.name, role: user.role };
+        return { 
+          id: user.id, 
+          email: user.email, 
+          name: user.name, 
+          role: user.role 
+        };
       }
     })
   ],
+  callbacks: {
+    async jwt({ token, user }: any) {
+      if (user) {
+        token.role = user.role;
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }: any) {
+      if (session.user) {
+        session.user.role = token.role;
+        session.user.id = token.id;
+      }
+      return session;
+    }
+  },
   pages: {
-    signIn: "/login", 
+    signIn: "/login",
+    error: "/login", 
   },
   session: {
     strategy: "jwt",
