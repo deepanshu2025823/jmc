@@ -76,3 +76,18 @@ model Coupon {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model StoreSettings {
+  id                String   @id @default(uuid())
+  isCodEnabled      Boolean  @default(true)
+  isRazorpayEnabled Boolean  @default(false) // Razorpay On/Off
+  razorpayKeyId     String?  // Client's Key ID
+  razorpayKeySecret String?  // Client's Secret Key
+  updatedAt         DateTime @updatedAt
+}
+
+model Newsletter {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

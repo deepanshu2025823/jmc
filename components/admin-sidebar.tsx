@@ -8,7 +8,10 @@ import {
   Users, 
   Sparkles, 
   Ticket, 
-  BarChart3 
+  BarChart3,
+  Mail,
+  Settings,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,9 +37,14 @@ const routes = [
     href: "/admin/orders" 
   },
   { 
-    label: "Customers", 
+    label: "Customer Leads", 
     icon: Users, 
-    href: "/admin/customers" 
+    href: "/admin/leads" 
+  },
+  { 
+    label: "Newsletter", 
+    icon: Mail, 
+    href: "/admin/newsletter" 
   },
   { 
     label: "Coupons", 
@@ -49,15 +57,23 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full flex-col border-r bg-white shadow-sm">
-      <div className="flex h-16 items-center border-b px-6">
-        <Link href="/admin" className="flex items-center gap-2 font-black tracking-widest text-xl uppercase">
-          <Sparkles className="h-6 w-6 text-zinc-800" />
-          JMC
+    <div className="flex h-full flex-col bg-white border-r border-zinc-100 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      <div className="flex h-20 items-center border-b border-zinc-50 px-8">
+        <Link href="/admin" className="group flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#B59461] shadow-lg shadow-[#B59461]/20 transition-transform group-hover:scale-110">
+            <Sparkles className="h-5 w-5 text-white" />
+          </div>
+          <span className="font-serif text-2xl font-black tracking-tighter text-zinc-900">
+            JMC <span className="text-[#B59461]">.</span>
+          </span>
         </Link>
       </div>
 
-      <nav className="flex flex-col gap-1 p-4 mt-2">
+      <nav className="flex-1 flex flex-col gap-1.5 p-6 mt-4">
+        <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+          Main Menu
+        </p>
+        
         {routes.map((route) => {
           const isActive = pathname === route.href || (route.href !== "/admin" && pathname.startsWith(route.href));
 
@@ -66,26 +82,44 @@ export function AdminSidebar() {
               key={route.href}
               href={route.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-all group",
+                "flex items-center gap-3.5 rounded-2xl px-4 py-3.5 text-sm font-bold transition-all duration-300 group relative overflow-hidden",
                 isActive
-                  ? "bg-zinc-900 text-white shadow-sm"
-                  : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                  ? "bg-[#B59461] text-white shadow-md shadow-[#B59461]/20"
+                  : "text-zinc-500 hover:bg-[#F9F6F0] hover:text-[#B59461]"
               )}
             >
               <route.icon className={cn(
-                "h-4 w-4 transition-colors",
-                isActive ? "text-white" : "text-zinc-400 group-hover:text-zinc-900"
+                "h-5 w-5 transition-transform duration-300 group-hover:scale-110",
+                isActive ? "text-white" : "text-zinc-400 group-hover:text-[#B59461]"
               )} />
               {route.label}
+              
+              {isActive && (
+                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-auto p-4 border-t">
-        <p className="text-[10px] text-zinc-400 uppercase font-bold tracking-wider text-center">
-          JMC Admin v1.0
-        </p>
+      <div className="p-6 mt-auto">
+        <div className="rounded-[2rem] bg-zinc-900 p-6 text-white relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-[#B59461]/10 blur-2xl group-hover:bg-[#B59461]/20 transition-all" />
+          
+          <div className="relative z-10 space-y-3">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-[#B59461] fill-[#B59461]" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">AI Engine</span>
+            </div>
+            <p className="text-xs font-medium leading-relaxed text-zinc-300">
+              Gemini 1.5 Flash is actively monitoring skin rituals.
+            </p>
+            <div className="flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+              <span className="text-[9px] font-bold text-emerald-500 uppercase">System Live</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

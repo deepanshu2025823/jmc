@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 export function ProfileDropdown({ user }: { user: any }) {
   return (
@@ -24,10 +25,12 @@ export function ProfileDropdown({ user }: { user: any }) {
       <DropdownMenuContent align="end" className="w-56 mt-1">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
-        </DropdownMenuItem>
+        <Link href="/admin/profile">
+          <DropdownMenuItem className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </DropdownMenuItem>
+        </Link>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
