@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Sparkles, ArrowRight, ShieldCheck, Loader2, Mail, ArrowLeft } from "lucide-react"; 
@@ -11,7 +11,7 @@ import Image from "next/image";
 import Link from "next/link"; 
 import { toast } from "sonner";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/profile"; 
@@ -263,5 +263,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen w-full flex items-center justify-center bg-zinc-50">
+        <Loader2 className="animate-spin h-8 w-8 text-[#B59461]" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
