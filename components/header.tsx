@@ -116,10 +116,7 @@ export function Header() {
         </nav>
 
         <Link href="/" className="group flex items-center gap-2 relative z-[101]">
-          <Sparkles className="h-5 w-5 text-[#B59461]" />
-          <h1 className="font-serif text-2xl md:text-3xl font-black tracking-tighter text-zinc-900">
-            JMC<span className="text-[#B59461]">.</span>
-          </h1>
+          <img src="/logo.png" className="h-25 w-25 rounded-lg object-cover" alt="JMC" />
         </Link>
 
         <div className="flex items-center justify-end gap-2 md:gap-5 flex-1">
