@@ -8,19 +8,19 @@ export function Hero() {
       <div className="max-w-7xl mx-auto px-6 pt-20 pb-12 lg:pt-32 lg:pb-24 flex flex-col lg:flex-row items-center">
         <div className="flex-1 space-y-8 z-10 text-center lg:text-left">
           <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-zinc-100">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#B59461]">Luxury Skincare Expert</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#50540b]">Luxury Skincare Expert</span>
           </div>
-          <h1 className="text-5xl lg:text-7xl font-serif text-zinc-900 leading-[1.1]">
-            Radiant Skin <br /> <span className="italic text-[#B59461]">Starts Here</span>
+          <h1 className="text-4xl lg:text-7xl font-serif text-zinc-900 leading-[1.1]">
+            Radiant Skin <br /> <span className="italic text-[#50540b]">Starts Here</span>
           </h1>
-          <p className="text-zinc-600 max-w-lg text-lg leading-relaxed mx-auto lg:mx-0">
+          <p className="text-zinc-600 max-w-lg text-[12px] md:text-xl leading-relaxed mx-auto lg:mx-0">
             Experience the perfection of nature-meets-science with our premium skincare range tailored for your unique beauty.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-            <Button size="lg" className="bg-[#B59461] hover:bg-[#967a4f] text-white rounded-full px-8 h-14 text-md shadow-lg shadow-[#B59461]/20">
+            <Button size="lg" className="bg-[#50540b] hover:bg-[#967a4f] text-white rounded-full px-8 h-14 text-md shadow-lg shadow-[#50540b]/20">
               Shop the Collection <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <button className="text-zinc-900 font-bold border-b-2 border-zinc-900 pb-1 hover:text-[#B59461] transition-colors">
+            <button className="text-zinc-900 font-bold border-b-2 border-zinc-900 pb-1 hover:text-[#50540b] transition-colors">
               Our Process
             </button>
           </div>

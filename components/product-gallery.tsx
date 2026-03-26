@@ -25,7 +25,7 @@ export function ProductGallery({ images, productName }: { images: string[], prod
             onClick={() => setSelectedImg(img)}
             className={cn(
               "relative h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all",
-              selectedImg === img ? "border-[#B59461]" : "border-transparent opacity-60 hover:opacity-100"
+              selectedImg === img ? "border-[#50540b]" : "border-transparent opacity-60 hover:opacity-100"
             )}
           >
             <Image src={img} alt="thumbnail" fill className="object-cover" />

@@ -116,7 +116,7 @@ export function Header() {
         </nav>
 
         <Link href="/" className="group flex items-center gap-2 relative z-[101]">
-          <img src="/logo.png" className="h-25 w-25 rounded-lg object-cover" alt="JMC" />
+          <img src="/logo.png" className="h-20 w-20" alt="JMC" />
         </Link>
 
         <div className="flex items-center justify-end gap-2 md:gap-5 flex-1">
@@ -130,7 +130,7 @@ export function Header() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none text-[10px] uppercase font-bold tracking-widest px-3 outline-none w-full"
               />
-              {isSearching && <Loader2 className="h-3 w-3 animate-spin text-[#B59461]" />}
+              {isSearching && <Loader2 className="h-3 w-3 animate-spin text-[#50540b]" />}
             </div>
 
             {searchResults.length > 0 && (
@@ -146,7 +146,7 @@ export function Header() {
                     <img src={product.imageUrl} className="h-12 w-12 rounded-lg object-cover" alt="" />
                     <div>
                       <p className="text-sm font-bold text-zinc-900">{product.name}</p>
-                      <p className="text-[10px] text-[#B59461] font-bold">₹{Number(product.price).toLocaleString()}</p>
+                      <p className="text-[10px] text-[#50540b] font-bold">₹{Number(product.price).toLocaleString()}</p>
                     </div>
                   </Link>
                 ))}
@@ -162,7 +162,7 @@ export function Header() {
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center gap-2 p-1.5 hover:bg-zinc-100 rounded-full transition-all"
                 >
-                  <div className="h-7 w-7 rounded-full bg-[#B59461] text-white flex items-center justify-center text-xs font-serif font-bold shadow-sm">
+                  <div className="h-7 w-7 rounded-full bg-[#50540b] text-white flex items-center justify-center text-xs font-serif font-bold shadow-sm">
                     {session.user?.name?.charAt(0).toUpperCase() || "J"}
                   </div>
                 </button>
@@ -200,9 +200,9 @@ export function Header() {
             )}
             
             <button onClick={() => setWishlistOpen(true)} className="p-2 relative group transition-all">
-              <Heart className={cn("h-5 w-5 transition-colors", wishlist.length > 0 ? "fill-[#B59461] text-[#B59461]" : "text-zinc-700")} />
+              <Heart className={cn("h-5 w-5 transition-colors", wishlist.length > 0 ? "fill-[#50540b] text-[#50540b]" : "text-zinc-700")} />
               {wishlist.length > 0 && (
-                <span className="absolute top-1 right-1 bg-[#B59461] text-white text-[8px] h-4 w-4 rounded-full flex items-center justify-center font-bold shadow-lg">
+                <span className="absolute top-1 right-1 bg-[#50540b] text-white text-[8px] h-4 w-4 rounded-full flex items-center justify-center font-bold shadow-lg">
                   {wishlist.length}
                 </span>
               )}
@@ -249,7 +249,7 @@ export function Header() {
                       </button>
                     </div>
                     <p className="text-[10px] text-zinc-400 font-bold uppercase mt-2">Qty: {item.quantity || 1}</p>
-                    <p className="font-bold text-[#B59461] mt-1">₹{(Number(item.price) * (item.quantity || 1)).toLocaleString()}</p>
+                    <p className="font-bold text-[#50540b] mt-1">₹{(Number(item.price) * (item.quantity || 1)).toLocaleString()}</p>
                   </div>
                 </div>
               ))
@@ -284,7 +284,7 @@ export function Header() {
             <SheetDescription>Wishlist items</SheetDescription>
           </VisuallyHidden.Root>
           <SheetHeader className="p-6 border-b bg-white">
-            <SheetTitle className="font-serif text-2xl italic text-[#B59461]">Saved Rituals</SheetTitle>
+            <SheetTitle className="font-serif text-2xl italic text-[#50540b]">Saved Rituals</SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {wishlist.length === 0 ? (
@@ -295,10 +295,10 @@ export function Header() {
                   <img src={item.imageUrl} className="h-20 w-16 rounded-xl object-cover border border-zinc-100" alt={item.name} />
                   <div className="flex-1">
                     <p className="font-serif text-sm font-bold text-zinc-900 leading-tight">{item.name}</p>
-                    <p className="text-[#B59461] text-xs font-bold mt-1">₹{Number(item.price).toLocaleString()}</p>
+                    <p className="text-[#50540b] text-xs font-bold mt-1">₹{Number(item.price).toLocaleString()}</p>
                     <button 
                       onClick={() => moveWishlistToCart(item)}
-                      className="flex items-center gap-1.5 mt-2 text-[10px] font-black uppercase text-zinc-900 border-b border-zinc-900 pb-0.5 hover:text-[#B59461] hover:border-[#B59461] transition-all"
+                      className="flex items-center gap-1.5 mt-2 text-[10px] font-black uppercase text-zinc-900 border-b border-zinc-900 pb-0.5 hover:text-[#50540b] hover:border-[#50540b] transition-all"
                     >
                       <ShoppingCart className="h-3 w-3" /> Move to Bag
                     </button>

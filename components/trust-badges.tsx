@@ -33,7 +33,7 @@ export function TrustBadges() {
               key={index} 
               className="group flex flex-col items-center text-center space-y-4 transition-all duration-300 hover:-translate-y-2"
             >
-              <div className="h-14 w-14 md:h-20 md:w-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#B59461] transition-all duration-500 group-hover:bg-[#B59461] group-hover:text-white group-hover:shadow-[0_0_30px_rgba(181,148,97,0.3)]">
+              <div className="h-14 w-14 md:h-20 md:w-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#50540b] transition-all duration-500 group-hover:bg-[#50540b] group-hover:text-white group-hover:shadow-[0_0_30px_rgba(181,148,97,0.3)]">
                 {badge.icon}
               </div>
 
@@ -46,7 +46,7 @@ export function TrustBadges() {
                 </p>
               </div>
 
-              <div className="hidden lg:block w-8 h-[1px] bg-white/10 group-hover:w-16 group-hover:bg-[#B59461] transition-all duration-500"></div>
+              <div className="hidden lg:block w-8 h-[1px] bg-white/10 group-hover:w-16 group-hover:bg-[#50540b] transition-all duration-500"></div>
             </div>
           ))}
         </div>

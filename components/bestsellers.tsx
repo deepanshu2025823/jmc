@@ -43,11 +43,11 @@ export function Bestsellers() {
     <section className="py-20 md:py-32 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 text-center space-y-4 mb-12 md:mb-20">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="h-[1px] w-8 bg-[#B59461]"></div>
-          <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.4em] text-[#B59461]">
+          <div className="h-[1px] w-8 bg-[#50540b]"></div>
+          <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.4em] text-[#50540b]">
             Curated Selection
           </span>
-          <div className="h-[1px] w-8 bg-[#B59461]"></div>
+          <div className="h-[1px] w-8 bg-[#50540b]"></div>
         </div>
         <h2 className="text-4xl md:text-6xl font-serif text-zinc-900 tracking-tight">
           Our <span className="italic font-light">Bestsellers</span>
@@ -128,7 +128,7 @@ export function Bestsellers() {
                         toast.success("Added to Cart");
                       }
                     }}
-                    className="w-full bg-zinc-900 text-white hover:bg-[#B59461] rounded-full font-bold h-10 md:h-12 shadow-2xl transition-colors border-none"
+                    className="w-full bg-zinc-900 text-white hover:bg-[#50540b] rounded-full font-bold h-10 md:h-12 shadow-2xl transition-colors border-none"
                    >
                      <ShoppingCart className="mr-2 h-4 w-4" /> 
                      <span className="hidden sm:inline">Add to Cart</span>
@@ -140,13 +140,13 @@ export function Bestsellers() {
               <div className="space-y-1 px-1">
                 <div className="flex items-center gap-1">
                    {[...Array(5)].map((_, i) => (
-                     <Star key={i} className="h-2.5 w-2.5 md:h-3 md:w-3 fill-[#B59461] text-[#B59461]" />
+                     <Star key={i} className="h-2.5 w-2.5 md:h-3 md:w-3 fill-[#50540b] text-[#50540b]" />
                    ))}
                    <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold ml-1 tracking-widest uppercase">Verified</span>
                 </div>
                 
                 <Link href={`/product/${product.id}`} className="block group/title">
-                  <h3 className="font-serif text-lg md:text-2xl text-zinc-900 font-bold leading-tight truncate group-hover/title:text-[#B59461] transition-colors">
+                  <h3 className="font-serif text-lg md:text-2xl text-zinc-900 font-bold leading-tight truncate group-hover/title:text-[#50540b] transition-colors">
                     {product.name}
                   </h3>
                 </Link>
@@ -156,7 +156,7 @@ export function Bestsellers() {
                 </p>
 
                 <Link href={`/product/${product.id}`} className="pt-1 flex items-center justify-between">
-                  <p className="text-lg md:text-2xl font-black text-[#B59461] italic">
+                  <p className="text-lg md:text-2xl font-black text-[#50540b] italic">
                     ₹{Number(product.price).toLocaleString("en-IN")}
                   </p>
                   <span className="text-[14px] md:text-[16px] text-zinc-300 font-medium line-through">
@@ -171,7 +171,7 @@ export function Bestsellers() {
 
       <div className="text-center mt-16 md:mt-24">
         <Link href="/shop">
-          <Button variant="outline" className="rounded-full px-12 md:h-14 border-zinc-200 text-zinc-500 font-bold hover:border-[#B59461] hover:text-[#B59461] hover:bg-[#F9F6F0] transition-all duration-300 shadow-sm">
+          <Button variant="outline" className="rounded-full px-12 md:h-14 border-zinc-200 text-zinc-500 font-bold hover:border-[#50540b] hover:text-[#50540b] hover:bg-[#F9F6F0] transition-all duration-300 shadow-sm">
             Explore Full Boutique
           </Button>
         </Link>
