@@ -1,4 +1,4 @@
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Link, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
@@ -17,12 +17,16 @@ export function Hero() {
             Experience the perfection of nature-meets-science with our premium skincare range tailored for your unique beauty.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+            <Link href="/shop">
             <Button size="lg" className="bg-[#50540b] hover:bg-[#967a4f] text-white rounded-full px-8 h-14 text-md shadow-lg shadow-[#50540b]/20">
               Shop the Collection <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+            </Link>
+            <Link href="/contact">
             <button className="text-zinc-900 font-bold border-b-2 border-zinc-900 pb-1 hover:text-[#50540b] transition-colors">
-              Our Process
+              Contact Us
             </button>
+            </Link>
           </div>
           
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-8 pt-8 opacity-70">
