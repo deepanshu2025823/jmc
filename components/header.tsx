@@ -35,6 +35,7 @@ export function Header() {
   const [isCartOpen, setCartOpen] = useState(false);
   const [isWishlistOpen, setWishlistOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -107,8 +108,43 @@ export function Header() {
       <div className="max-w-7xl mx-auto flex items-center justify-between relative">
         
         <div className="md:hidden flex-1">
-          <Menu className="h-6 w-6 text-zinc-800 cursor-pointer" />
+          <Menu 
+            className="h-6 w-6 text-zinc-800 cursor-pointer hover:text-black transition-colors" 
+            onClick={() => setIsMobileMenuOpen(true)} 
+          />
         </div>
+
+      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+        <SheetContent side="left" className="w-full sm:max-w-sm flex flex-col p-6 z-[110] border-none shadow-2xl">
+          <VisuallyHidden.Root>
+            <SheetTitle>Navigation Menu</SheetTitle>
+            <SheetDescription>Main navigation links</SheetDescription>
+          </VisuallyHidden.Root>
+          
+          <SheetHeader className="pb-6 border-b border-zinc-100 mt-4 text-left">
+            <Link href="/" className="group flex items-center gap-2 relative z-[101]">
+              <img src="/logo.png" className="h-20 w-20" alt="JMC" />
+            </Link>
+          </SheetHeader>
+
+          <nav className="flex flex-col gap-8 mt-8 flex-1">
+            <Link 
+              href="/shop" 
+              onClick={() => setIsMobileMenuOpen(false)} 
+              className="text-xl font-bold uppercase tracking-[0.2em] text-zinc-600 hover:text-black transition-colors"
+            >
+              Shop
+            </Link>
+            <Link 
+              href="/about" 
+              onClick={() => setIsMobileMenuOpen(false)} 
+              className="text-xl font-bold uppercase tracking-[0.2em] text-zinc-600 hover:text-black transition-colors"
+            >
+              Story
+            </Link>
+          </nav>
+        </SheetContent>
+      </Sheet>
 
         <nav className="hidden md:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500 flex-1">
           <Link href="/shop" className="hover:text-black transition-colors font-bold">Shop</Link>
