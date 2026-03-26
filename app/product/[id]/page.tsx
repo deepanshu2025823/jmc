@@ -43,14 +43,14 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
 
           <div className="lg:col-span-5 flex flex-col space-y-8">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 bg-[#F9F6F0] px-3 py-1 rounded-full border border-[#B59461]/20">
-                <Sparkles className="h-3 w-3 text-[#B59461]" />
-                <span className="text-[9px] font-black uppercase text-[#B59461] tracking-widest">Ritual Approved</span>
+              <div className="inline-flex items-center gap-2 bg-[#F9F6F0] px-3 py-1 rounded-full border border-[#50540b]/20">
+                <Sparkles className="h-3 w-3 text-[#50540b]" />
+                <span className="text-[9px] font-black uppercase text-[#50540b] tracking-widest">Ritual Approved</span>
               </div>
               <h1 className="text-3xl md:text-5xl font-serif text-zinc-900 leading-tight">{product.name}</h1>
               <div className="flex items-center gap-3">
                 <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-[#B59461] text-[#B59461]" />)}
+                  {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-[#50540b] text-[#50540b]" />)}
                 </div>
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">(120 REVIEWS)</span>
               </div>
@@ -58,7 +58,7 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
 
             <div className="space-y-4">
               <div className="flex items-baseline gap-4">
-                <span className="text-4xl font-black text-[#B59461] italic">₹{product.price.toLocaleString("en-IN")}</span>
+                <span className="text-4xl font-black text-[#50540b] italic">₹{product.price.toLocaleString("en-IN")}</span>
                 <span className="text-lg text-zinc-300 line-through">₹{product.price + 599}</span>
               </div>
               <p className="text-zinc-500 leading-relaxed text-sm md:text-md">

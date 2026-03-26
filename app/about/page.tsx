@@ -11,8 +11,8 @@ export default function AboutPage() {
       
       <div className="pt-32 md:pt-44 pb-20 px-6 text-center max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <Sparkles className="h-4 w-4 text-[#B59461]" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B59461]">
+          <Sparkles className="h-4 w-4 text-[#50540b]" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#50540b]">
             Our Heritage
           </span>
         </div>
@@ -35,7 +35,7 @@ export default function AboutPage() {
           </div>
           <div className="space-y-8 lg:pl-10">
             <h2 className="text-3xl md:text-5xl font-serif text-zinc-900 leading-tight">
-              Crafted with <span className="italic text-[#B59461]">Nature's</span> Finest Elements
+              Crafted with <span className="italic text-[#50540b]">Nature's</span> Finest Elements
             </h2>
             <div className="space-y-6 text-zinc-500 leading-relaxed text-lg">
               <p>
@@ -47,12 +47,12 @@ export default function AboutPage() {
             </div>
             <div className="pt-6 border-t border-zinc-100 flex items-center gap-6">
               <div className="text-center">
-                <p className="text-4xl font-serif font-bold text-zinc-900">10<span className="text-[#B59461]">+</span></p>
+                <p className="text-4xl font-serif font-bold text-zinc-900">10<span className="text-[#50540b]">+</span></p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-1">Years of Research</p>
               </div>
               <div className="w-[1px] h-12 bg-zinc-200"></div>
               <div className="text-center">
-                <p className="text-4xl font-serif font-bold text-zinc-900">100<span className="text-[#B59461]">%</span></p>
+                <p className="text-4xl font-serif font-bold text-zinc-900">100<span className="text-[#50540b]">%</span></p>
                 <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mt-1">Organic Pure</p>
               </div>
             </div>
@@ -97,10 +97,10 @@ export default function AboutPage() {
 
       <div className="max-w-4xl mx-auto px-6 py-32 text-center space-y-8">
         <h2 className="text-4xl md:text-5xl font-serif text-zinc-900 leading-tight">
-          Ready to elevate your <br /><span className="italic text-[#B59461]">daily ritual?</span>
+          Ready to elevate your <br /><span className="italic text-[#50540b]">daily ritual?</span>
         </h2>
         <Link href="/shop" className="inline-block">
-          <Button className="h-16 px-10 bg-zinc-900 hover:bg-[#B59461] text-white rounded-full font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all duration-300">
+          <Button className="h-16 px-10 bg-zinc-900 hover:bg-[#50540b] text-white rounded-full font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all duration-300">
             Explore The Collection
           </Button>
         </Link>

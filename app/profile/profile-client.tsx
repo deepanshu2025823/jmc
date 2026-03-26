@@ -64,7 +64,7 @@ export function ProfileClient({ user }: { user: any }) {
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-zinc-100 flex flex-col items-center text-center">
               <div className="relative mb-6">
-                <div className="h-28 w-28 rounded-full bg-[#B59461] flex items-center justify-center text-white text-5xl font-serif shadow-xl">
+                <div className="h-28 w-28 rounded-full bg-[#50540b] flex items-center justify-center text-white text-5xl font-serif shadow-xl">
                   {user.name?.charAt(0).toUpperCase() || "J"}
                 </div>
                 <div className="absolute bottom-0 right-0 bg-emerald-50 p-2 rounded-full border-2 border-white">
@@ -80,8 +80,8 @@ export function ProfileClient({ user }: { user: any }) {
                   <p className="text-xl font-serif font-bold text-zinc-900 mt-1">{user.orders.length}</p>
                 </div>
                 <div className="inline-flex items-center gap-2 bg-[#F9F6F0] px-4 py-2 rounded-full">
-                  <User className="h-3 w-3 text-[#B59461]" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#B59461]">Elite Member</span>
+                  <User className="h-3 w-3 text-[#50540b]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#50540b]">Elite Member</span>
                 </div>
               </div>
             </div>
@@ -89,13 +89,13 @@ export function ProfileClient({ user }: { user: any }) {
             <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-zinc-100">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6">Account Settings</h3>
               <div className="space-y-4">
-                <button onClick={() => setActiveSheet("addresses")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#B59461] transition-colors py-2">
+                <button onClick={() => setActiveSheet("addresses")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#50540b] transition-colors py-2">
                   <span className="flex items-center gap-3"><MapPin className="h-4 w-4" /> Shipping Addresses</span> <ArrowRight className="h-4 w-4 opacity-50" />
                 </button>
-                <button onClick={() => setActiveSheet("payments")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#B59461] transition-colors py-2 border-t border-zinc-50 pt-4">
+                <button onClick={() => setActiveSheet("payments")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#50540b] transition-colors py-2 border-t border-zinc-50 pt-4">
                   <span className="flex items-center gap-3"><CreditCard className="h-4 w-4" /> Payment Methods</span> <ArrowRight className="h-4 w-4 opacity-50" />
                 </button>
-                <button onClick={() => setActiveSheet("notifications")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#B59461] transition-colors py-2 border-t border-zinc-50 pt-4">
+                <button onClick={() => setActiveSheet("notifications")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#50540b] transition-colors py-2 border-t border-zinc-50 pt-4">
                   <span className="flex items-center gap-3"><Bell className="h-4 w-4" /> Notification Preferences</span> <ArrowRight className="h-4 w-4 opacity-50" />
                 </button>
               </div>
@@ -107,7 +107,7 @@ export function ProfileClient({ user }: { user: any }) {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
                 <h2 className="text-2xl md:text-3xl font-serif font-bold text-zinc-900">Order <span className="italic font-light">History</span></h2>
                 <Link href="/shop">
-                  <Button variant="outline" className="rounded-full text-[10px] font-black uppercase tracking-widest border-zinc-200 h-10 px-6 hover:bg-[#F9F6F0] hover:text-[#B59461] hover:border-[#B59461] transition-all">
+                  <Button variant="outline" className="rounded-full text-[10px] font-black uppercase tracking-widest border-zinc-200 h-10 px-6 hover:bg-[#F9F6F0] hover:text-[#50540b] hover:border-[#50540b] transition-all">
                     New Ritual
                   </Button>
                 </Link>
@@ -119,7 +119,7 @@ export function ProfileClient({ user }: { user: any }) {
                   <p className="font-serif text-xl text-zinc-900 mb-2">No orders yet</p>
                   <p className="text-sm text-zinc-400 mb-8 max-w-sm mx-auto">Your luxury skincare journey awaits.</p>
                   <Link href="/shop">
-                    <Button className="bg-zinc-900 hover:bg-[#B59461] text-white rounded-full font-black uppercase text-[10px] tracking-[0.2em] h-14 px-10 shadow-xl transition-all">Explore Boutique</Button>
+                    <Button className="bg-zinc-900 hover:bg-[#50540b] text-white rounded-full font-black uppercase text-[10px] tracking-[0.2em] h-14 px-10 shadow-xl transition-all">Explore Boutique</Button>
                   </Link>
                 </div>
               ) : (
@@ -128,7 +128,7 @@ export function ProfileClient({ user }: { user: any }) {
                     <div key={order.id} className="group border border-zinc-100 rounded-[2rem] p-6 md:p-8 hover:shadow-xl hover:border-zinc-200 transition-all duration-500 bg-white">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-zinc-50 pb-6">
                         <div className="flex items-center gap-4">
-                          <div className="bg-[#F9F6F0] h-12 w-12 flex items-center justify-center rounded-full shrink-0"><Package className="h-5 w-5 text-[#B59461]" /></div>
+                          <div className="bg-[#F9F6F0] h-12 w-12 flex items-center justify-center rounded-full shrink-0"><Package className="h-5 w-5 text-[#50540b]" /></div>
                           <div>
                             <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">Order Ref</p>
                             <p className="text-sm font-mono font-bold text-zinc-900">#{order.id.slice(0, 8).toUpperCase()}</p>
@@ -157,7 +157,7 @@ export function ProfileClient({ user }: { user: any }) {
                               <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Qty: {item.quantity}</p>
                             </div>
                             <div className="text-right shrink-0">
-                              <p className="text-sm md:text-md font-black text-[#B59461]">₹{Number(item.price).toLocaleString()}</p>
+                              <p className="text-sm md:text-md font-black text-[#50540b]">₹{Number(item.price).toLocaleString()}</p>
                             </div>
                           </div>
                         ))}
@@ -168,7 +168,7 @@ export function ProfileClient({ user }: { user: any }) {
                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Total Paid</p>
                            <p className="text-xl md:text-2xl font-serif font-bold text-zinc-900 leading-none">₹{Number(order.totalAmount).toLocaleString()}</p>
                         </div>
-                        <Button onClick={() => openInvoice(order)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-[#B59461] hover:text-zinc-900 hover:bg-transparent p-0 flex items-center gap-1">
+                        <Button onClick={() => openInvoice(order)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-[#50540b] hover:text-zinc-900 hover:bg-transparent p-0 flex items-center gap-1">
                           View Invoice <ArrowRight className="h-3 w-3" />
                         </Button>
                       </div>
@@ -197,7 +197,7 @@ export function ProfileClient({ user }: { user: any }) {
               <div className="space-y-8">
                 <div className="flex justify-between items-end border-b border-dashed border-zinc-200 pb-8">
                   <div>
-                    <h3 className="font-serif text-xl font-bold text-[#B59461]">JMC Secret Rituals</h3>
+                    <h3 className="font-serif text-xl font-bold text-[#50540b]">JMC Secret Rituals</h3>
                     <p className="text-xs text-zinc-500 mt-1">Luxury Skincare Expert</p>
                   </div>
                   <div className="text-right">
@@ -223,7 +223,7 @@ export function ProfileClient({ user }: { user: any }) {
                   </div>
                 </div>
                 <div className="bg-[#F9F6F0] p-4 rounded-xl text-center mt-10">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#B59461]">Thank you for your purchase</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#50540b]">Thank you for your purchase</p>
                 </div>
               </div>
             )}
@@ -245,8 +245,8 @@ export function ProfileClient({ user }: { user: any }) {
           {!isAddingAddress ? (
             <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
               {savedAddresses.map((addr) => (
-                <div key={addr.id} className={cn("border rounded-2xl p-5 relative", addr.isDefault ? "border-[#B59461] bg-[#F9F6F0]/30" : "border-zinc-200 bg-white")}>
-                  {addr.isDefault && <span className="absolute top-4 right-4 bg-[#B59461] text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full">Default</span>}
+                <div key={addr.id} className={cn("border rounded-2xl p-5 relative", addr.isDefault ? "border-[#50540b] bg-[#F9F6F0]/30" : "border-zinc-200 bg-white")}>
+                  {addr.isDefault && <span className="absolute top-4 right-4 bg-[#50540b] text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full">Default</span>}
                   <p className="font-bold text-zinc-900 text-sm mb-1">{user.name}</p>
                   <p className="text-xs text-zinc-500 leading-relaxed">{addr.street},<br/>{addr.city}, {addr.state},<br/>{addr.pincode}, India</p>
                 </div>
@@ -260,28 +260,28 @@ export function ProfileClient({ user }: { user: any }) {
             <form onSubmit={handleSaveAddress} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Street Address</Label>
-                <Input required value={newAddress.street} onChange={(e) => setNewAddress({...newAddress, street: e.target.value})} placeholder="Apartment, suite, block, etc." className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#B59461]" />
+                <Input required value={newAddress.street} onChange={(e) => setNewAddress({...newAddress, street: e.target.value})} placeholder="Apartment, suite, block, etc." className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b]" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">City</Label>
-                  <Input required value={newAddress.city} onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} placeholder="City" className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#B59461]" />
+                  <Input required value={newAddress.city} onChange={(e) => setNewAddress({...newAddress, city: e.target.value})} placeholder="City" className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b]" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">State</Label>
-                  <Input required value={newAddress.state} onChange={(e) => setNewAddress({...newAddress, state: e.target.value})} placeholder="State" className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#B59461]" />
+                  <Input required value={newAddress.state} onChange={(e) => setNewAddress({...newAddress, state: e.target.value})} placeholder="State" className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b]" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Pincode</Label>
-                <Input required value={newAddress.pincode} onChange={(e) => setNewAddress({...newAddress, pincode: e.target.value})} placeholder="000000" className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#B59461]" />
+                <Input required value={newAddress.pincode} onChange={(e) => setNewAddress({...newAddress, pincode: e.target.value})} placeholder="000000" className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b]" />
               </div>
               
               <div className="flex gap-3 pt-4">
                 <Button type="button" onClick={() => setIsAddingAddress(false)} variant="outline" className="flex-1 h-12 rounded-xl text-xs font-bold border-zinc-200">
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1 h-12 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-[#B59461] transition-colors">
+                <Button type="submit" className="flex-1 h-12 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-[#50540b] transition-colors">
                   Save Address
                 </Button>
               </div>
@@ -313,7 +313,7 @@ export function ProfileClient({ user }: { user: any }) {
                 <p className="font-bold text-sm text-zinc-900">Email Updates</p>
                 <p className="text-xs text-zinc-500">Order confirmations and receipts.</p>
               </div>
-              <button onClick={() => setEmailNotif(!emailNotif)} className={cn("w-12 h-7 rounded-full transition-colors relative", emailNotif ? "bg-[#B59461]" : "bg-zinc-200")}>
+              <button onClick={() => setEmailNotif(!emailNotif)} className={cn("w-12 h-7 rounded-full transition-colors relative", emailNotif ? "bg-[#50540b]" : "bg-zinc-200")}>
                 <div className={cn("h-5 w-5 bg-white rounded-full absolute top-1 transition-all shadow-sm", emailNotif ? "left-6" : "left-1")} />
               </button>
             </div>
@@ -322,7 +322,7 @@ export function ProfileClient({ user }: { user: any }) {
                 <p className="font-bold text-sm text-zinc-900">SMS Alerts</p>
                 <p className="text-xs text-zinc-500">Delivery tracking and real-time updates.</p>
               </div>
-              <button onClick={() => setSMSNotif(!smsNotif)} className={cn("w-12 h-7 rounded-full transition-colors relative", smsNotif ? "bg-[#B59461]" : "bg-zinc-200")}>
+              <button onClick={() => setSMSNotif(!smsNotif)} className={cn("w-12 h-7 rounded-full transition-colors relative", smsNotif ? "bg-[#50540b]" : "bg-zinc-200")}>
                 <div className={cn("h-5 w-5 bg-white rounded-full absolute top-1 transition-all shadow-sm", smsNotif ? "left-6" : "left-1")} />
               </button>
             </div>

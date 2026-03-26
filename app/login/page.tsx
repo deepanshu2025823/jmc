@@ -140,12 +140,12 @@ function LoginContent() {
         
         <div className="relative z-10 w-full max-w-lg text-white space-y-8 mt-auto">
           <div className="flex items-center gap-2 font-black tracking-[0.2em] text-2xl uppercase">
-            <Sparkles className="h-6 w-6 text-[#B59461]" /> JMC
+            <Sparkles className="h-6 w-6 text-[#50540b]" /> JMC
           </div>
           <div>
             <h1 className="text-4xl lg:text-5xl font-serif text-white leading-tight mb-4">
               {!isAdminFlow ? "The Art of" : "Command"} <br />
-              <span className="italic text-[#B59461] font-light">
+              <span className="italic text-[#50540b] font-light">
                 {!isAdminFlow ? "Radiant Skin" : "Center"}
               </span>
             </h1>
@@ -161,7 +161,7 @@ function LoginContent() {
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-6 sm:p-12 md:p-16 lg:p-24 relative bg-zinc-50/30 lg:bg-white">
         
         <div className="lg:hidden absolute top-8 left-6 sm:left-12 flex items-center gap-2 font-black tracking-widest text-xl uppercase text-zinc-900">
-          <Sparkles className="h-5 w-5 text-[#B59461]" /> JMC
+          <Sparkles className="h-5 w-5 text-[#50540b]" /> JMC
         </div>
 
         <div className="w-full max-w-md mx-auto space-y-10 mt-16 lg:mt-0">
@@ -181,16 +181,16 @@ function LoginContent() {
                 {error && <div className="p-4 text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl text-center uppercase tracking-widest">{error}</div>}
                 <div className="space-y-3">
                   <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Admin Email</Label>
-                  <Input type="email" placeholder="admin@jmc.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#B59461] focus:ring-[#B59461]/20 transition-all" />
+                  <Input type="email" placeholder="admin@jmc.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] focus:ring-[#50540b]/20 transition-all" />
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Password</Label>
-                    <Link href="/forgot-password" className="text-[10px] font-bold text-[#B59461] hover:text-zinc-900 transition-colors uppercase tracking-widest">Forgot?</Link>
+                    <Link href="/forgot-password" className="text-[10px] font-bold text-[#50540b] hover:text-zinc-900 transition-colors uppercase tracking-widest">Forgot?</Link>
                   </div>
-                  <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#B59461] focus:ring-[#B59461]/20 transition-all" />
+                  <Input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] focus:ring-[#50540b]/20 transition-all" />
                 </div>
-                <Button type="submit" disabled={loading} className="w-full h-14 rounded-xl bg-zinc-900 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-[#B59461] transition-all shadow-lg hover:shadow-xl mt-4">
+                <Button type="submit" disabled={loading} className="w-full h-14 rounded-xl bg-zinc-900 text-white font-bold uppercase tracking-widest text-[10px] hover:bg-[#50540b] transition-all shadow-lg hover:shadow-xl mt-4">
                   {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <>Access Dashboard <ArrowRight className="ml-2 h-4 w-4" /></>}
                 </Button>
               </form>
@@ -207,10 +207,10 @@ function LoginContent() {
                         placeholder="client@example.com" 
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)} 
-                        className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#B59461] focus:ring-[#B59461]/20 transition-all px-5" 
+                        className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] focus:ring-[#50540b]/20 transition-all px-5" 
                       />
                     </div>
-                    <Button onClick={handleSendOTP} disabled={loading} className="w-full h-14 rounded-xl bg-zinc-900 hover:bg-[#B59461] text-white font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg hover:shadow-xl mt-4">
+                    <Button onClick={handleSendOTP} disabled={loading} className="w-full h-14 rounded-xl bg-zinc-900 hover:bg-[#50540b] text-white font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg hover:shadow-xl mt-4">
                       {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <>Send Access Code <Mail className="ml-2 h-4 w-4" /></>}
                     </Button>
                   </div>
@@ -232,14 +232,14 @@ function LoginContent() {
                             value={otp[i] || ""}
                             onChange={(e) => handleOtpChange(i, e)}
                             onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                            className="w-10 h-12 md:w-12 md:h-14 text-center text-xl md:text-2xl font-serif font-bold text-zinc-900 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-[#B59461] focus:ring-2 focus:ring-[#B59461]/20 outline-none transition-all shadow-sm"
+                            className="w-10 h-12 md:w-12 md:h-14 text-center text-xl md:text-2xl font-serif font-bold text-zinc-900 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-[#50540b] focus:ring-2 focus:ring-[#50540b]/20 outline-none transition-all shadow-sm"
                           />
                         ))}
                       </div>
 
                     </div>
                     <div className="space-y-4 pt-2">
-                      <Button type="submit" disabled={loading || otp.length < 6} className="w-full h-14 rounded-xl bg-[#B59461] hover:bg-[#967a4f] text-white font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg hover:shadow-xl disabled:opacity-50">
+                      <Button type="submit" disabled={loading || otp.length < 6} className="w-full h-14 rounded-xl bg-[#50540b] hover:bg-[#967a4f] text-white font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg hover:shadow-xl disabled:opacity-50">
                         {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Verify & Enter"}
                       </Button>
                       <button 
@@ -270,7 +270,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen w-full flex items-center justify-center bg-zinc-50">
-        <Loader2 className="animate-spin h-8 w-8 text-[#B59461]" />
+        <Loader2 className="animate-spin h-8 w-8 text-[#50540b]" />
       </div>
     }>
       <LoginContent />

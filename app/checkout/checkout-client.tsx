@@ -88,7 +88,7 @@ export default function CheckoutClient({
           email: userEmail,
         },
         theme: {
-          color: "#B59461", 
+          color: "#50540b", 
         },
       };
 
@@ -158,11 +158,11 @@ export default function CheckoutClient({
                     className={cn(
                       "rounded-2xl p-5 relative transition-all duration-300",
                       isCodEnabled ? "cursor-pointer border-2" : "border border-zinc-200 bg-zinc-50 opacity-60 cursor-not-allowed grayscale",
-                      (paymentMethod === "COD" && isCodEnabled) ? "border-[#B59461] bg-[#F9F6F0]/30" : "border-zinc-100 hover:border-zinc-300"
+                      (paymentMethod === "COD" && isCodEnabled) ? "border-[#50540b] bg-[#F9F6F0]/30" : "border-zinc-100 hover:border-zinc-300"
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <Truck className={cn("h-5 w-5", (paymentMethod === "COD" && isCodEnabled) ? "text-[#B59461]" : "text-zinc-400")} />
+                      <Truck className={cn("h-5 w-5", (paymentMethod === "COD" && isCodEnabled) ? "text-[#50540b]" : "text-zinc-400")} />
                       <div>
                         <p className="text-sm font-bold text-zinc-900">Cash on Delivery</p>
                         <p className="text-[10px] uppercase font-black mt-0.5 text-zinc-500">
@@ -170,7 +170,7 @@ export default function CheckoutClient({
                         </p>
                       </div>
                     </div>
-                    {(paymentMethod === "COD" && isCodEnabled) && <ShieldCheck className="h-5 w-5 absolute top-5 right-5 text-[#B59461]" />}
+                    {(paymentMethod === "COD" && isCodEnabled) && <ShieldCheck className="h-5 w-5 absolute top-5 right-5 text-[#50540b]" />}
                   </div>
                   
                   <div 
@@ -178,11 +178,11 @@ export default function CheckoutClient({
                     className={cn(
                       "rounded-2xl p-5 relative transition-all duration-300",
                       isRazorpayEnabled ? "cursor-pointer border-2" : "border border-zinc-200 bg-zinc-50 opacity-60 cursor-not-allowed grayscale",
-                      (paymentMethod === "ONLINE" && isRazorpayEnabled) ? "border-[#B59461] bg-[#F9F6F0]/30" : "border-zinc-100 hover:border-zinc-300"
+                      (paymentMethod === "ONLINE" && isRazorpayEnabled) ? "border-[#50540b] bg-[#F9F6F0]/30" : "border-zinc-100 hover:border-zinc-300"
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <CreditCard className={cn("h-5 w-5", (paymentMethod === "ONLINE" && isRazorpayEnabled) ? "text-[#B59461]" : "text-zinc-400")} />
+                      <CreditCard className={cn("h-5 w-5", (paymentMethod === "ONLINE" && isRazorpayEnabled) ? "text-[#50540b]" : "text-zinc-400")} />
                       <div>
                         <p className="text-sm font-bold text-zinc-900">Pay Online (Secure)</p>
                         <p className="text-[10px] uppercase font-black mt-0.5 text-zinc-500">
@@ -190,7 +190,7 @@ export default function CheckoutClient({
                         </p>
                       </div>
                     </div>
-                    {(paymentMethod === "ONLINE" && isRazorpayEnabled) && <ShieldCheck className="h-5 w-5 absolute top-5 right-5 text-[#B59461]" />}
+                    {(paymentMethod === "ONLINE" && isRazorpayEnabled) && <ShieldCheck className="h-5 w-5 absolute top-5 right-5 text-[#50540b]" />}
                   </div>
                 </div>
               </div>
@@ -200,7 +200,7 @@ export default function CheckoutClient({
                 type="submit" 
                 className={cn(
                   "w-full h-16 rounded-full font-black uppercase text-xs tracking-[0.2em] shadow-2xl mt-8 transition-all duration-500",
-                  (!isCodEnabled && !isRazorpayEnabled) ? "bg-zinc-200 text-zinc-400 cursor-not-allowed" : "bg-zinc-900 hover:bg-[#B59461] text-white"
+                  (!isCodEnabled && !isRazorpayEnabled) ? "bg-zinc-200 text-zinc-400 cursor-not-allowed" : "bg-zinc-900 hover:bg-[#50540b] text-white"
                 )}
               >
                 {(!isCodEnabled && !isRazorpayEnabled) 
@@ -218,7 +218,7 @@ export default function CheckoutClient({
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white rounded-[2.5rem] p-8 border border-zinc-100 shadow-sm sticky top-40">
               <div className="flex items-center gap-2 mb-8">
-                <PackageCheck className="h-4 w-4 text-[#B59461]" />
+                <PackageCheck className="h-4 w-4 text-[#50540b]" />
                 <h2 className="text-xl font-serif font-bold uppercase tracking-tight">Review Order</h2>
               </div>
               
@@ -231,7 +231,7 @@ export default function CheckoutClient({
                     <div className="flex-1 min-w-0">
                       <p className="font-serif text-sm font-bold text-zinc-900 truncate">{item.name}</p>
                       <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Qty: {item.quantity}</p>
-                      <p className="text-[#B59461] text-xs font-black mt-1">₹{Number(item.price).toLocaleString()}</p>
+                      <p className="text-[#50540b] text-xs font-black mt-1">₹{Number(item.price).toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
@@ -250,7 +250,7 @@ export default function CheckoutClient({
                 )}
                 <div className="flex justify-between items-center border-t border-zinc-100 pt-6 mt-6">
                   <span className="font-serif text-lg text-zinc-500">Order Total</span>
-                  <span className="text-3xl font-black text-[#B59461]">₹{total.toLocaleString()}</span>
+                  <span className="text-3xl font-black text-[#50540b]">₹{total.toLocaleString()}</span>
                 </div>
               </div>
             </div>

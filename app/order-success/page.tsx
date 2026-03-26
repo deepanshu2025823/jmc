@@ -28,8 +28,8 @@ function OrderSuccessContent() {
         </div>
         
         <div className="flex items-center justify-center gap-2 mb-4">
-          <Sparkles className="h-4 w-4 text-[#B59461]" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B59461]">
+          <Sparkles className="h-4 w-4 text-[#50540b]" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#50540b]">
             Order Confirmed
           </span>
         </div>
@@ -42,8 +42,8 @@ function OrderSuccessContent() {
           Your luxury skincare ritual is being prepared. We will send you an email with shipping details shortly.
         </p>
 
-        <div className="bg-[#F9F6F0] rounded-2xl p-6 mb-10 flex items-center justify-center gap-4 border border-[#B59461]/20">
-          <Package className="h-5 w-5 text-[#B59461]" />
+        <div className="bg-[#F9F6F0] rounded-2xl p-6 mb-10 flex items-center justify-center gap-4 border border-[#50540b]/20">
+          <Package className="h-5 w-5 text-[#50540b]" />
           <div className="text-left">
             <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-widest">Order Reference</p>
             <p className="font-mono font-bold text-zinc-900">{orderId ? `#${orderId.slice(0, 10).toUpperCase()}` : "Processing..."}</p>
@@ -52,7 +52,7 @@ function OrderSuccessContent() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/profile" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto h-14 bg-zinc-900 text-white rounded-full font-bold uppercase text-[10px] tracking-widest px-8 shadow-lg hover:bg-[#B59461] transition-all">
+            <Button className="w-full sm:w-auto h-14 bg-zinc-900 text-white rounded-full font-bold uppercase text-[10px] tracking-widest px-8 shadow-lg hover:bg-[#50540b] transition-all">
               Track Order
             </Button>
           </Link>
@@ -73,7 +73,7 @@ export default function OrderSuccessPage() {
       <Header />
       <Suspense fallback={
         <div className="flex flex-col items-center justify-center pt-44 px-6">
-           <Loader2 className="h-10 w-10 text-[#B59461] animate-spin" />
+           <Loader2 className="h-10 w-10 text-[#50540b] animate-spin" />
         </div>
       }>
         <OrderSuccessContent />

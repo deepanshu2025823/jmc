@@ -90,7 +90,7 @@ export default function CartPage() {
                   <div className="flex-1 flex flex-col justify-between py-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-[10px] font-black text-[#B59461] uppercase tracking-[0.2em] mb-1">Luxury Ritual</p>
+                        <p className="text-[10px] font-black text-[#50540b] uppercase tracking-[0.2em] mb-1">Luxury Ritual</p>
                         <h3 className="text-xl font-serif font-bold text-zinc-900">{item.name}</h3>
                       </div>
                       <button 
@@ -105,19 +105,19 @@ export default function CartPage() {
                       <div className="flex items-center border border-zinc-200 rounded-full px-4 py-2 gap-6 bg-white shadow-sm">
                         <button 
                           onClick={() => updateQuantity(item.id, 'minus')}
-                          className="hover:text-[#B59461] transition-colors"
+                          className="hover:text-[#50540b] transition-colors"
                         >
                           <Minus className="h-4 w-4" />
                         </button>
                         <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
                         <button 
                           onClick={() => updateQuantity(item.id, 'plus')}
-                          className="hover:text-[#B59461] transition-colors"
+                          className="hover:text-[#50540b] transition-colors"
                         >
                           <Plus className="h-4 w-4" />
                         </button>
                       </div>
-                      <p className="text-2xl font-black text-[#B59461] italic">
+                      <p className="text-2xl font-black text-[#50540b] italic">
                         ₹{(Number(item.price) * item.quantity).toLocaleString()}
                       </p>
                     </div>
@@ -128,7 +128,7 @@ export default function CartPage() {
 
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-white border border-zinc-100 rounded-[2rem] p-6 space-y-4 shadow-sm">
-                <div className="flex items-center gap-2 text-[#B59461]">
+                <div className="flex items-center gap-2 text-[#50540b]">
                   <Ticket className="h-4 w-4" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Apply Promo Code</span>
                 </div>
@@ -151,7 +151,7 @@ export default function CartPage() {
                       placeholder="Enter code..."
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      className="flex-1 bg-zinc-50 border border-zinc-100 rounded-xl px-4 text-sm outline-none focus:ring-1 ring-[#B59461] transition-all"
+                      className="flex-1 bg-zinc-50 border border-zinc-100 rounded-xl px-4 text-sm outline-none focus:ring-1 ring-[#50540b] transition-all"
                     />
                     <Button 
                       onClick={handleApplyCoupon} 
@@ -185,11 +185,11 @@ export default function CartPage() {
                 
                 <div className="flex justify-between items-center pt-2">
                   <span className="font-serif text-lg text-zinc-600">Total Amount</span>
-                  <span className="text-3xl font-black text-[#B59461]">₹{total.toLocaleString()}</span>
+                  <span className="text-3xl font-black text-[#50540b]">₹{total.toLocaleString()}</span>
                 </div>
 
                 <Link href="/checkout" className="block pt-4">
-                  <Button className="w-full h-16 bg-zinc-900 hover:bg-[#B59461] text-white rounded-full font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all duration-300">
+                  <Button className="w-full h-16 bg-zinc-900 hover:bg-[#50540b] text-white rounded-full font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all duration-300">
                     Proceed to Checkout
                   </Button>
                 </Link>

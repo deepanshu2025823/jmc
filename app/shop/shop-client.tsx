@@ -26,8 +26,8 @@ export function ShopClient({ initialProducts }: { initialProducts: any[] }) {
       
       <div className="pt-32 md:pt-44 pb-12 px-6 text-center max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <Sparkles className="h-4 w-4 text-[#B59461]" />
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#B59461]">
+          <Sparkles className="h-4 w-4 text-[#50540b]" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#50540b]">
             The Complete Collection
           </span>
         </div>
@@ -62,7 +62,7 @@ export function ShopClient({ initialProducts }: { initialProducts: any[] }) {
                 className={cn(
                   "text-[10px] font-black uppercase tracking-widest transition-colors text-left md:text-center",
                   selectedCategory === cat 
-                    ? "text-[#B59461] border-b border-[#B59461]" 
+                    ? "text-[#50540b] border-b border-[#50540b]" 
                     : "text-zinc-400 hover:text-zinc-900"
                 )}
               >
@@ -125,7 +125,7 @@ export function ShopClient({ initialProducts }: { initialProducts: any[] }) {
                           e.preventDefault(); e.stopPropagation();
                           addToCart({ id: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl });
                         }}
-                        className="w-full bg-zinc-900 text-white hover:bg-[#B59461] rounded-full font-bold h-10 md:h-12 shadow-2xl transition-colors border-none"
+                        className="w-full bg-zinc-900 text-white hover:bg-[#50540b] rounded-full font-bold h-10 md:h-12 shadow-2xl transition-colors border-none"
                        >
                          <ShoppingCart className="mr-2 h-4 w-4" /> 
                          <span className="hidden sm:inline">{product.stock === 0 ? "Out of Stock" : "Add to Cart"}</span>
@@ -138,12 +138,12 @@ export function ShopClient({ initialProducts }: { initialProducts: any[] }) {
                   <div className="space-y-1.5 px-1">
                     <div className="flex items-center gap-1">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-2 w-2 md:h-2.5 md:w-2.5 fill-[#B59461] text-[#B59461]" />
+                        <Star key={i} className="h-2 w-2 md:h-2.5 md:w-2.5 fill-[#50540b] text-[#50540b]" />
                       ))}
                     </div>
                     
                     <Link href={`/product/${product.id}`}>
-                      <h3 className="font-serif text-md md:text-lg text-zinc-900 leading-tight truncate hover:text-[#B59461] transition-colors">
+                      <h3 className="font-serif text-md md:text-lg text-zinc-900 leading-tight truncate hover:text-[#50540b] transition-colors">
                         {product.name}
                       </h3>
                     </Link>

@@ -116,7 +116,7 @@ export function Header() {
         </nav>
 
         <Link href="/" className="group flex items-center gap-2 relative z-[101]">
-          <img src="/logo.png" className="h-20 w-20" alt="JMC" />
+          <img src="/logo.png" className="h-12 w-12 md:h-20 md:w-20" alt="JMC" />
         </Link>
 
         <div className="flex items-center justify-end gap-2 md:gap-5 flex-1">
