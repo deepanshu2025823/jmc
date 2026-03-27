@@ -50,7 +50,7 @@ export function Hero() {
         <div className="flex-1 relative mt-16 lg:mt-0 w-full max-w-xl">
           <div className="relative aspect-[4/5] rounded-t-full overflow-hidden border-[12px] border-white shadow-2xl">
             <Image 
-              src="https://images.unsplash.com/photo-1552046122-03184de85e08?q=80&w=1974&auto=format&fit=crop"
+              src="/uploads/1774286793484-Ultraluxuryskincareeditorial4k20260202221.jpeg"
               alt="Model with glowing skin"
               fill
               className="object-cover"
