@@ -1,14 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
-import { updateProduct, deleteProductImage } from "@/actions/product";
+
+import { useEffect, useState, use } from "react"; 
+import { updateProduct, deleteProductImage } from "@/actions/product"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Save, ImagePlus, Plus, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-
-import { use } from "react";
+import { toast } from "sonner";
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -16,20 +16,60 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [galleryInputs, setGalleryInputs] = useState<number[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+
   useEffect(() => {
     const fetchProduct = async () => {
-      const res = await fetch(`/api/products/${productId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setProduct(data);
+      try {
+        const res = await fetch(`/api/products/${productId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setProduct(data);
+          setName(data.name); // Setup initial name
+          setSlug(data.slug); // Setup initial slug
+        } else {
+          toast.error("Failed to load product details.");
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchProduct();
   }, [productId]);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setName(newName);
+    // Convert to lowercase, replace spaces/special chars with hyphens
+    const generatedSlug = newName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+    setSlug(generatedSlug);
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const manualSlug = e.target.value.toLowerCase().replace(/[^a-z0-9\-]+/g, '-');
+    setSlug(manualSlug);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const fileSizeInMB = file.size / (1024 * 1024);
+      if (fileSizeInMB > 5) {
+        toast.error(`File is too large (${fileSizeInMB.toFixed(1)}MB). Max size is 5MB.`);
+        e.target.value = ""; // Clear the selected file
+      }
+    }
+  };
 
   const addGalleryInput = () => setGalleryInputs([...galleryInputs, Date.now()]);
   const removeGalleryInput = (idToRemove: number) => {
@@ -40,137 +80,179 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     if (!confirm("Are you sure you want to delete this image? It will be removed permanently.")) return;
     
     setIsDeleting(imageUrl);
-    const result = await deleteProductImage(productId, imageUrl, isMainImage);
-    
-    if (result.success) {
-      if (isMainImage) {
-        setProduct({ ...product, imageUrl: null });
+    try {
+      const result = await deleteProductImage(productId, imageUrl, isMainImage);
+      
+      if (result.success) {
+        toast.success("Image deleted successfully");
+        if (isMainImage) {
+          setProduct({ ...product, imageUrl: null });
+        } else {
+          const newImages = product.images.filter((img: string) => img !== imageUrl);
+          setProduct({ ...product, images: newImages });
+        }
       } else {
-        const newImages = product.images.filter((img: string) => img !== imageUrl);
-        setProduct({ ...product, images: newImages });
+        toast.error("Failed to delete image.");
       }
+    } catch (error) {
+      toast.error("Something went wrong.");
+    } finally {
+      setIsDeleting(null);
     }
-    setIsDeleting(null);
   };
 
-  if (loading) return <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-zinc-500" /></div>;
-  if (!product) return <div className="text-center p-12">Product not found</div>;
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSaving(true);
+    
+    const formData = new FormData(e.currentTarget);
+    
+    try {
+      const result = await updateProduct(productId, formData) as unknown as { success?: boolean; error?: string };
+      
+      if (result?.success) { 
+        toast.success("Product updated successfully!");
+        setGalleryInputs([]); 
+      } else {
+        toast.error(result?.error || "Failed to update product.");
+      }
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error("Something went wrong while saving.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  const updateProductWithId = updateProduct.bind(null, product.id);
+  if (loading) return <div className="flex justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-[#B59461]" /></div>;
+  if (!product) return <div className="text-center p-12 font-serif text-xl">Product not found</div>;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-start sm:items-center gap-4">
+    <div className="max-w-3xl mx-auto space-y-6 pb-20">
+      <div className="flex items-center gap-4 border-b border-zinc-100 pb-6">
         <Link href="/admin/products" className="shrink-0">
-          <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10 border-zinc-200 mt-1 sm:mt-0">
+          <Button variant="outline" size="icon" className="h-10 w-10 rounded-full border-zinc-200 hover:bg-zinc-50">
             <ArrowLeft className="h-4 w-4 text-zinc-600" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 leading-tight">Edit Product</h1>
-          <p className="text-sm sm:text-base text-zinc-500 mt-1 break-words">Update details for {product.name}</p>
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-zinc-900 leading-tight">Edit Product</h1>
+          <p className="text-xs uppercase tracking-widest font-bold text-[#B59461] mt-1 break-words">{product.name}</p>
         </div>
       </div>
 
-      <form action={updateProductWithId} className="bg-white p-4 sm:p-6 md:p-8 rounded-xl border border-zinc-200 shadow-sm space-y-6 sm:space-y-8">
+      <form onSubmit={handleSubmit} className="bg-white p-6 md:p-10 rounded-[2rem] border border-zinc-100 shadow-sm space-y-8">
         
-        <div className="space-y-4 sm:space-y-6">
-          <h2 className="text-base sm:text-lg font-semibold border-b pb-2">Basic Information</h2>
+        <div className="space-y-6">
+          <h2 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-50 pb-2">Basic Information</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Product Name</Label>
-              <Input id="name" name="name" defaultValue={product.name} required className="h-11" />
+              <Label htmlFor="name" className="text-xs font-bold text-zinc-700">Product Name</Label>
+              <Input 
+                id="name" 
+                name="name" 
+                value={name} 
+                onChange={handleNameChange} 
+                required 
+                className="h-12 rounded-xl bg-zinc-50/50" 
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">Product Slug</Label>
-              <Input id="slug" name="slug" defaultValue={product.slug} required className="h-11" />
+              <Label htmlFor="slug" className="text-xs font-bold text-zinc-700">Product Slug</Label>
+              <Input 
+                id="slug" 
+                name="slug" 
+                value={slug} 
+                onChange={handleSlugChange} 
+                required 
+                className="h-12 rounded-xl bg-zinc-50/50" 
+              />
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Input id="category" name="category" defaultValue={product.category || ""} required className="h-11" />
+              <Label htmlFor="category" className="text-xs font-bold text-zinc-700">Category</Label>
+              <Input id="category" name="category" defaultValue={product.category || ""} required className="h-12 rounded-xl bg-zinc-50/50" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price">Price (₹)</Label>
-              <Input id="price" name="price" type="number" step="0.01" defaultValue={Number(product.price)} required className="h-11" />
+              <Label htmlFor="price" className="text-xs font-bold text-zinc-700">Price (₹)</Label>
+              <Input id="price" name="price" type="number" step="0.01" defaultValue={Number(product.price)} required className="h-12 rounded-xl bg-zinc-50/50" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="stock">Stock</Label>
-              <Input id="stock" name="stock" type="number" defaultValue={product.stock} required className="h-11" />
+              <Label htmlFor="stock" className="text-xs font-bold text-zinc-700">Stock</Label>
+              <Input id="stock" name="stock" type="number" defaultValue={product.stock} required className="h-12 rounded-xl bg-zinc-50/50" />
             </div>
           </div>
         </div>
 
-        {/* Media Management */}
-        <div className="space-y-4 sm:space-y-6 bg-zinc-50 p-4 sm:p-6 rounded-lg border border-zinc-100">
-          <div className="flex items-center gap-2 border-b border-zinc-200 pb-2">
-            <ImagePlus className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-600" />
-            <h2 className="text-base sm:text-lg font-semibold">Media Management</h2>
+        <div className="space-y-6 bg-[#F9F6F0]/30 p-6 rounded-2xl border border-[#B59461]/20">
+          <div className="flex items-center gap-2 border-b border-[#B59461]/10 pb-3">
+            <ImagePlus className="h-5 w-5 text-[#B59461]" />
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-[#B59461]">Media Management (Max 5MB)</h2>
           </div>
           
           <div className="space-y-4">
-            <Label className="font-semibold text-zinc-800">Main Display Image</Label>
+            <Label className="text-xs font-bold text-zinc-700">Main Display Image</Label>
             {product.imageUrl ? (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-zinc-200 rounded-md bg-white">
-                <Image src={product.imageUrl} alt="Main" width={80} height={80} className="rounded-md object-cover border border-zinc-200 h-16 w-16 sm:h-20 sm:w-20" />
-                <div className="flex-1 w-full">
-                  <p className="text-xs sm:text-sm font-medium">Current Main Image</p>
-                  <Button type="button" variant="destructive" size="sm" className="mt-2 h-7 w-full sm:w-auto" onClick={() => handleDeleteImage(product.imageUrl, true)} disabled={isDeleting === product.imageUrl}>
-                    {isDeleting === product.imageUrl ? <Loader2 className="h-3 w-3 animate-spin mr-1"/> : <Trash2 className="h-3 w-3 mr-1" />} Delete
+              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 border border-zinc-200 rounded-xl bg-white shadow-sm">
+                <Image src={product.imageUrl} alt="Main" width={80} height={80} className="rounded-lg object-cover h-20 w-20 bg-zinc-50" />
+                <div className="flex-1 w-full text-center sm:text-left">
+                  <p className="text-xs font-bold text-zinc-900">Current Main Image</p>
+                  <Button type="button" variant="destructive" size="sm" className="mt-3 h-8 w-full sm:w-auto rounded-lg text-xs" onClick={() => handleDeleteImage(product.imageUrl, true)} disabled={isDeleting === product.imageUrl}>
+                    {isDeleting === product.imageUrl ? <Loader2 className="h-3 w-3 animate-spin mr-1"/> : <Trash2 className="h-3 w-3 mr-1" />} Delete Image
                   </Button>
                 </div>
               </div>
             ) : (
-              <Input id="mainImage" name="mainImage" type="file" accept="image/png, image/jpeg, image/webp" className="bg-white cursor-pointer file:h-full" />
+              <Input id="mainImage" name="mainImage" type="file" accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} className="bg-white cursor-pointer file:h-full rounded-xl" />
             )}
             
             {product.imageUrl && (
               <div className="pt-2">
-                <Label htmlFor="mainImage" className="text-xs text-zinc-500">Upload to replace main image:</Label>
-                <Input id="mainImage" name="mainImage" type="file" accept="image/png, image/jpeg, image/webp" className="bg-white cursor-pointer mt-1 h-10 sm:h-9 text-xs" />
+                <Label htmlFor="mainImage" className="text-[10px] uppercase font-bold text-zinc-400">Upload to replace main image:</Label>
+                <Input id="mainImage" name="mainImage" type="file" accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} className="bg-white cursor-pointer mt-2 h-11 text-xs rounded-xl" />
               </div>
             )}
           </div>
 
-          <div className="space-y-4 pt-4 sm:pt-6 border-t border-zinc-200">
-            <Label className="font-semibold text-zinc-800">Gallery Images</Label>
+          <div className="space-y-4 pt-6 border-t border-[#B59461]/10">
+            <Label className="text-xs font-bold text-zinc-700">Gallery Images</Label>
             
             {product.images && product.images.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 mb-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                 {product.images.map((imgUrl: string, idx: number) => (
-                  <div key={idx} className="relative group border border-zinc-200 rounded-md bg-white p-1.5 sm:p-2">
-                    <Image src={imgUrl} alt={`Gallery ${idx}`} width={150} height={150} className="rounded-md object-cover aspect-square w-full" />
+                  <div key={idx} className="relative group border border-zinc-200 rounded-xl bg-white p-2 shadow-sm">
+                    <Image src={imgUrl} alt={`Gallery ${idx}`} width={150} height={150} className="rounded-lg object-cover aspect-square w-full bg-zinc-50" />
                     <Button 
                       type="button" 
                       variant="destructive" 
                       size="icon" 
-                      className="absolute top-1 sm:top-2 right-1 sm:right-2 h-6 w-6 sm:h-7 sm:w-7 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm"
+                      className="absolute top-3 right-3 h-7 w-7 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-md"
                       onClick={() => handleDeleteImage(imgUrl, false)}
                       disabled={isDeleting === imgUrl}
                     >
-                      {isDeleting === imgUrl ? <Loader2 className="h-3 w-3 animate-spin"/> : <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
+                      {isDeleting === imgUrl ? <Loader2 className="h-3 w-3 animate-spin"/> : <Trash2 className="h-3.5 w-3.5" />}
                     </Button>
                   </div>
                 ))}
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mt-4">
-              <Label className="text-xs sm:text-sm text-zinc-500">Upload additional gallery images</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addGalleryInput} className="h-9 sm:h-8 gap-1 bg-white w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4">
+              <Label className="text-[10px] uppercase font-bold text-zinc-400">Upload additional gallery images</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addGalleryInput} className="h-9 rounded-lg gap-2 bg-white text-zinc-700 border-zinc-200 hover:border-[#B59461] hover:text-[#B59461] transition-colors w-full sm:w-auto font-bold text-xs">
                 <Plus className="h-3 w-3" /> Add Image Box
               </Button>
             </div>
             
             <div className="space-y-3">
               {galleryInputs.map((id) => (
-                <div key={id} className="flex flex-row items-center gap-2">
-                  <Input name="galleryImages" type="file" accept="image/png, image/jpeg, image/webp" className="bg-white cursor-pointer h-10" />
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeGalleryInput(id)} className="text-red-500 hover:bg-red-50 shrink-0 h-10 w-10">
-                    <Trash2 className="h-4 w-4 sm:h-4 sm:w-4" />
+                <div key={id} className="flex flex-row items-center gap-3">
+                  <Input name="galleryImages" type="file" accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} className="bg-white cursor-pointer h-11 rounded-xl" />
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removeGalleryInput(id)} className="text-red-500 hover:bg-red-50 rounded-xl shrink-0 h-11 w-11 border border-red-100">
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
@@ -179,15 +261,23 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Description</Label>
           <textarea 
             id="description" name="description" rows={5} defaultValue={product.description} required
-            className="flex w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-900 resize-y"
+            className="flex w-full rounded-2xl border border-zinc-200 bg-zinc-50/50 px-4 py-4 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#B59461] focus-visible:border-[#B59461] resize-none transition-colors"
           />
         </div>
 
-        <Button type="submit" className="w-full h-12 sm:h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-medium gap-2 text-sm sm:text-base">
-          <Save className="h-4 w-4" /> Update Product
+        <Button 
+          type="submit" 
+          disabled={saving}
+          className="w-full h-16 bg-zinc-900 hover:bg-[#B59461] text-white rounded-full font-black uppercase text-xs tracking-[0.2em] shadow-xl mt-4 transition-all duration-500"
+        >
+          {saving ? (
+            <span className="flex items-center gap-2">Saving Changes <Loader2 className="h-4 w-4 animate-spin" /></span>
+          ) : (
+            <span className="flex items-center gap-2"><Save className="h-4 w-4" /> Update Product</span>
+          )}
         </Button>
       </form>
     </div>

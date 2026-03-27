@@ -60,48 +60,66 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(id: string, formData: FormData) {
-  const name = formData.get("name") as string;
-  const slug = formData.get("slug") as string;
-  const description = formData.get("description") as string;
-  const price = parseFloat(formData.get("price") as string);
-  const stock = parseInt(formData.get("stock") as string);
-  const category = formData.get("category") as string;
-  
-  const mainImageFile = formData.get("mainImage") as File;
-  const newImageUrl = await saveFile(mainImageFile);
-
-  const galleryFiles = formData.getAll("galleryImages") as File[];
-  const newGalleryUrls = [];
-  
-  for (const file of galleryFiles) {
-    const url = await saveFile(file);
-    if (url) newGalleryUrls.push(url);
-  }
-
-  const existingProduct = await prisma.product.findUnique({ where: { id } });
-  
-  const dataToUpdate: any = { name, slug, description, price, stock, category };
-  
-  if (newImageUrl) {
-    if (existingProduct?.imageUrl) {
-      await deleteFileFromDisk(existingProduct.imageUrl);
+  try {
+    const name = formData.get("name") as string;
+    const slug = formData.get("slug") as string;
+    const description = formData.get("description") as string;
+    const price = parseFloat(formData.get("price") as string);
+    const stock = parseInt(formData.get("stock") as string);
+    const category = formData.get("category") as string;
+    
+    if (!name || !slug || isNaN(price) || isNaN(stock)) {
+      return { success: false, error: "Please ensure all required fields (Price, Stock) are filled correctly." };
     }
-    dataToUpdate.imageUrl = newImageUrl;
+
+    const mainImageFile = formData.get("mainImage") as File;
+    const newImageUrl = await saveFile(mainImageFile);
+
+    const galleryFiles = formData.getAll("galleryImages") as File[];
+    const newGalleryUrls = [];
+    
+    for (const file of galleryFiles) {
+      const url = await saveFile(file);
+      if (url) newGalleryUrls.push(url);
+    }
+
+    const existingProduct = await prisma.product.findUnique({ where: { id } });
+    
+    const dataToUpdate: any = { name, slug, description, price, stock, category };
+    
+    if (newImageUrl) {
+      if (existingProduct?.imageUrl) {
+        await deleteFileFromDisk(existingProduct.imageUrl);
+      }
+      dataToUpdate.imageUrl = newImageUrl;
+    }
+
+    if (newGalleryUrls.length > 0) {
+      const currentImages = (existingProduct?.images as string[]) || [];
+      dataToUpdate.images = [...currentImages, ...newGalleryUrls];
+    }
+
+    await prisma.product.update({
+      where: { id },
+      data: dataToUpdate
+    });
+
+    // Refresh pages to show updated data
+    revalidatePath("/admin/products");
+    revalidatePath(`/admin/products/${id}/edit`);
+    revalidatePath("/admin");
+    
+    // Yahan hum SUCCESS return kar rahe hain taaki client side toast message dikha sake (No Redirect)
+    return { success: true };
+
+  } catch (error: any) {
+    console.error("Product Update Error:", error);
+    // Unique Constraint failed (e.g., duplicate slug)
+    if (error.code === 'P2002') {
+      return { success: false, error: "This Product Slug is already in use. Please enter a unique slug." };
+    }
+    return { success: false, error: "Something went wrong while updating." };
   }
-
-  if (newGalleryUrls.length > 0) {
-    const currentImages = (existingProduct?.images as string[]) || [];
-    dataToUpdate.images = [...currentImages, ...newGalleryUrls];
-  }
-
-  await prisma.product.update({
-    where: { id },
-    data: dataToUpdate
-  });
-
-  revalidatePath("/admin/products");
-  revalidatePath("/admin");
-  redirect("/admin/products");
 }
 
 export async function deleteProduct(id: string) {
@@ -149,6 +167,6 @@ export async function deleteProductImage(productId: string, imageUrl: string, is
     return { success: true };
   } catch (error) {
     console.error("Failed to delete image:", error);
-    return { success: false, error: "Failed to delete image file" };
+    return { success: false, error: "Failed to delete image file from database." };
   }
 }
