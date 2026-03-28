@@ -1,8 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { writeFile, unlink } from "fs/promises";
+import { writeFile, unlink, mkdir } from "fs/promises"; 
 import { join } from "path";
 
 async function saveFile(file: File | null): Promise<string | null> {
@@ -12,9 +11,17 @@ async function saveFile(file: File | null): Promise<string | null> {
   const buffer = Buffer.from(bytes);
   
   const uniqueName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "")}`;
-  const filePath = join(process.cwd(), "public", "uploads", uniqueName);
+  const uploadDir = join(process.cwd(), "public", "uploads");
   
+  try {
+    await mkdir(uploadDir, { recursive: true });
+  } catch (err) {
+    console.error("Folder creation error:", err);
+  }
+
+  const filePath = join(uploadDir, uniqueName);
   await writeFile(filePath, buffer);
+  
   return `/uploads/${uniqueName}`;
 }
 
@@ -29,34 +36,49 @@ async function deleteFileFromDisk(imageUrl: string | null) {
 }
 
 export async function createProduct(formData: FormData) {
-  const name = formData.get("name") as string;
-  const slug = formData.get("slug") as string;
-  const description = formData.get("description") as string;
-  const price = parseFloat(formData.get("price") as string);
-  const stock = parseInt(formData.get("stock") as string);
-  const category = formData.get("category") as string;
-  
-  const mainImageFile = formData.get("mainImage") as File;
-  const imageUrl = await saveFile(mainImageFile);
-
-  const galleryFiles = formData.getAll("galleryImages") as File[];
-  const galleryUrls = [];
-  
-  for (const file of galleryFiles) {
-    const url = await saveFile(file);
-    if (url) galleryUrls.push(url);
-  }
-
-  await prisma.product.create({
-    data: { 
-      name, slug, description, price, stock, category, 
-      imageUrl, images: galleryUrls 
+  try {
+    const name = formData.get("name") as string;
+    const slug = formData.get("slug") as string;
+    const description = formData.get("description") as string;
+    const price = parseFloat(formData.get("price") as string);
+    const stock = parseInt(formData.get("stock") as string);
+    const category = formData.get("category") as string;
+    
+    if (!name || !slug || isNaN(price) || isNaN(stock)) {
+      return { success: false, error: "Please ensure all required fields are filled correctly." };
     }
-  });
 
-  revalidatePath("/admin/products");
-  revalidatePath("/admin");
-  redirect("/admin/products");
+    const mainImageFile = formData.get("mainImage") as File;
+    const imageUrl = await saveFile(mainImageFile);
+
+    const galleryFiles = formData.getAll("galleryImages") as File[];
+    const galleryUrls = [];
+    
+    for (const file of galleryFiles) {
+      const url = await saveFile(file);
+      if (url) galleryUrls.push(url);
+    }
+
+    await prisma.product.create({
+      data: { 
+        name, slug, description, price, stock, category, 
+        imageUrl, images: galleryUrls 
+      }
+    });
+
+    revalidatePath("/admin/products");
+    revalidatePath("/admin");
+    
+    // Redirect hata kar Success return kar rahe hain (Taaki UI crash na ho)
+    return { success: true };
+
+  } catch (error: any) {
+    console.error("Create Product Error:", error);
+    if (error.code === 'P2002') {
+      return { success: false, error: "This Product Slug is already in use. Please enter a unique slug." };
+    }
+    return { success: false, error: "Database or File System error occurred." };
+  }
 }
 
 export async function updateProduct(id: string, formData: FormData) {
@@ -104,17 +126,14 @@ export async function updateProduct(id: string, formData: FormData) {
       data: dataToUpdate
     });
 
-    // Refresh pages to show updated data
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${id}/edit`);
     revalidatePath("/admin");
     
-    // Yahan hum SUCCESS return kar rahe hain taaki client side toast message dikha sake (No Redirect)
     return { success: true };
 
   } catch (error: any) {
     console.error("Product Update Error:", error);
-    // Unique Constraint failed (e.g., duplicate slug)
     if (error.code === 'P2002') {
       return { success: false, error: "This Product Slug is already in use. Please enter a unique slug." };
     }
