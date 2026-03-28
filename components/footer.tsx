@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Facebook, Instagram, Twitter, Home, LayoutGrid, Heart, ShoppingBag, User } from "lucide-react";
+import { Sparkles, Facebook, Instagram, Twitter, Home, LayoutGrid, Heart, ShoppingBag, User } from "lucide-react";
 import { useCartStore } from "@/hooks/use-cart-store";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
@@ -11,10 +11,11 @@ export function Footer() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   
-  const cart = useCartStore((state: any) => state.cart) || [];
-  const wishlist = useCartStore((state: any) => state.wishlist) || [];
-  const setCartOpen = useCartStore((state: any) => state.setCartOpen);
-  const setWishlistOpen = useCartStore((state: any) => state.setWishlistOpen);
+  const store = useCartStore() as any;
+  const cart = store?.cart || [];
+  const wishlist = store?.wishlist || [];
+  const setCartOpen = store?.setCartOpen;
+  const setWishlistOpen = store?.setWishlistOpen;
 
   useEffect(() => {
     setMounted(true);
@@ -86,14 +87,7 @@ export function Footer() {
           <span className="text-[8px] font-bold uppercase tracking-widest">Shop</span>
         </Link>
 
-        <button 
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            setWishlistOpen(true);
-          }} 
-          className="flex flex-col items-center gap-1 p-2 text-zinc-400 hover:text-[#B59461] relative"
-        >
+        <button onClick={() => setWishlistOpen && setWishlistOpen(true)} className="flex flex-col items-center gap-1 p-2 text-zinc-400 hover:text-[#B59461] relative">
           <Heart className="h-5 w-5" />
           <span className="text-[8px] font-bold uppercase tracking-widest">Wishlist</span>
           {mounted && wishlist.length > 0 && (
@@ -103,14 +97,7 @@ export function Footer() {
           )}
         </button>
 
-        <button 
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            setCartOpen(true);
-          }} 
-          className="flex flex-col items-center gap-1 p-2 text-zinc-400 hover:text-[#B59461] relative"
-        >
+        <button onClick={() => setCartOpen && setCartOpen(true)} className="flex flex-col items-center gap-1 p-2 text-zinc-400 hover:text-[#B59461] relative">
           <ShoppingBag className="h-5 w-5" />
           <span className="text-[8px] font-bold uppercase tracking-widest">Bag</span>
           {mounted && cart.length > 0 && (
