@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Save, Plus, Trash2, ImagePlus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation"; // 1. NAYA IMPORT
+import { useRouter } from "next/navigation"; 
 
 export default function NewProductPage() {
-  const router = useRouter(); // 2. ROUTER INITIALIZE KIYA
+  const router = useRouter(); 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [saving, setSaving] = useState(false);
@@ -45,7 +45,6 @@ export default function NewProductPage() {
     setGalleryInputs(galleryInputs.filter((id) => id !== idToRemove));
   };
 
-  // 3. UPDATED SUBMIT FUNCTION
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
