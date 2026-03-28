@@ -4,17 +4,17 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { v2 as cloudinary } from "cloudinary";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
 async function saveFile(file: File | null | any): Promise<string | null> {
   try {
     if (!file || typeof file === "string" || file.size === 0 || !file.name || file.name === "undefined") {
       return null;
     }
+
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
     
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
