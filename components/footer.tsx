@@ -40,7 +40,7 @@ export function Footer() {
               <h3 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">The Boutique</h3>
               <ul className="space-y-4 text-sm">
                 <li><Link href="/shop" className="hover:text-[#50540b] transition-colors">All Rituals</Link></li>
-                <li><Link href="/shop" className="hover:text-[#50540b] transition-colors">Bestsellers</Link></li>
+                <li><Link href="/bestsellers" className="hover:text-[#50540b] transition-colors">Bestsellers</Link></li>
                 <li><Link href="/new-arrivals" className="hover:text-[#50540b] transition-colors">New Arrivals</Link></li>
                 <li><Link href="/about" className="hover:text-[#50540b] transition-colors">Our Story</Link></li>
               </ul>
