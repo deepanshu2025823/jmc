@@ -49,9 +49,9 @@ export function Footer() {
             <div className="space-y-6">
               <h3 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Client Care</h3>
               <ul className="space-y-4 text-sm">
-                <li><Link href="#" className="hover:text-[#50540b] transition-colors">Contact Us</Link></li>
+                <li><Link href="/contact" className="hover:text-[#50540b] transition-colors">Contact Us</Link></li>
                 <li><Link href="#" className="hover:text-[#50540b] transition-colors">Shipping & Returns</Link></li>
-                <li><Link href="#" className="hover:text-[#50540b] transition-colors">FAQ</Link></li>
+                <li><Link href="/faq" className="hover:text-[#50540b] transition-colors">FAQ</Link></li>
                 <li><Link href="/profile" className="hover:text-[#50540b] transition-colors">My Account</Link></li>
               </ul>
             </div>
