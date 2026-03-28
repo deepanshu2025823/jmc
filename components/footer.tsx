@@ -41,7 +41,7 @@ export function Footer() {
               <ul className="space-y-4 text-sm">
                 <li><Link href="/shop" className="hover:text-[#50540b] transition-colors">All Rituals</Link></li>
                 <li><Link href="/shop" className="hover:text-[#50540b] transition-colors">Bestsellers</Link></li>
-                <li><Link href="/shop" className="hover:text-[#50540b] transition-colors">New Arrivals</Link></li>
+                <li><Link href="/new-arrivals" className="hover:text-[#50540b] transition-colors">New Arrivals</Link></li>
                 <li><Link href="/about" className="hover:text-[#50540b] transition-colors">Our Story</Link></li>
               </ul>
             </div>
@@ -50,7 +50,7 @@ export function Footer() {
               <h3 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Client Care</h3>
               <ul className="space-y-4 text-sm">
                 <li><Link href="/contact" className="hover:text-[#50540b] transition-colors">Contact Us</Link></li>
-                <li><Link href="#" className="hover:text-[#50540b] transition-colors">Shipping & Returns</Link></li>
+                <li><Link href="/shipping-returns" className="hover:text-[#50540b] transition-colors">Shipping & Returns</Link></li>
                 <li><Link href="/faq" className="hover:text-[#50540b] transition-colors">FAQ</Link></li>
                 <li><Link href="/profile" className="hover:text-[#50540b] transition-colors">My Account</Link></li>
               </ul>
