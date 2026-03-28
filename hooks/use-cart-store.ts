@@ -19,12 +19,15 @@ interface CartStore {
   updateQuantity: (id: string, type: 'plus' | 'minus') => void;
   setCoupon: (coupon: { code: string; discount: number; type: string } | null) => void;
   clearCart: () => void; 
+  isWishlistOpen: boolean;
+  setWishlistOpen: (isOpen: boolean) => void;
 }
 
 export const useCartStore = create<CartStore>((set) => ({
   cart: [],
   wishlist: [],
   appliedCoupon: null,
+  isWishlistOpen: false, // Default state bandh (false) rahegi
 
   addToWishlist: (product: any) => set((state) => ({ wishlist: [...state.wishlist, product] })),
   
@@ -61,4 +64,6 @@ export const useCartStore = create<CartStore>((set) => ({
   setCoupon: (coupon) => set({ appliedCoupon: coupon }),
   
   clearCart: () => set({ cart: [], appliedCoupon: null }), 
+
+  setWishlistOpen: (isOpen) => set({ isWishlistOpen: isOpen }),
 }));

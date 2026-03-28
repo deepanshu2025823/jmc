@@ -8,7 +8,7 @@ import { TrustBadges } from "@/components/trust-badges";
 import { Star, ShieldCheck, Sparkles } from "lucide-react";
 import { AddToCartButton } from "@/components/add-to-cart-button"; 
 import { BuyNowButton } from "@/components/buy-now-button"; 
-import { Button } from "@/components/ui/button";
+import { AddToWishlistButton } from "@/components/add-to-wishlist-button"; 
 import { ProductGallery } from "@/components/product-gallery";
 import { RecentProducts } from "@/components/recent-products";
 
@@ -88,9 +88,8 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
 
               <BuyNowButton product={product} isUserLoggedIn={isUserLoggedIn} />
               
-              <Button variant="outline" className="h-14 rounded-full border-zinc-200 font-bold uppercase text-[10px] tracking-widest hover:bg-[#F9F6F0]">
-                Add to Wishlist
-              </Button>
+              {/* HUMNE PURANA STATIC BUTTON HATA KAR NAYA COMPONENT LAGA DIYA HAI */}
+              <AddToWishlistButton product={product} />
             </div>
 
             <div className="pt-4 space-y-4">
