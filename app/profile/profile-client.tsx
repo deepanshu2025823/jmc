@@ -17,7 +17,7 @@ const formatDate = (dateString: string) => {
 };
 
 export function ProfileClient({ user }: { user: any }) {
-  const [activeSheet, setActiveSheet] = useState<"invoice" | "addresses" | "payments" | "notifications" | null>(null);
+  const [activeSheet, setActiveSheet] = useState<"invoice" | "addresses" | "notifications" | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [mounted, setMounted] = useState(false); 
   
@@ -91,9 +91,6 @@ export function ProfileClient({ user }: { user: any }) {
               <div className="space-y-4">
                 <button onClick={() => setActiveSheet("addresses")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#50540b] transition-colors py-2">
                   <span className="flex items-center gap-3"><MapPin className="h-4 w-4" /> Shipping Addresses</span> <ArrowRight className="h-4 w-4 opacity-50" />
-                </button>
-                <button onClick={() => setActiveSheet("payments")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#50540b] transition-colors py-2 border-t border-zinc-50 pt-4">
-                  <span className="flex items-center gap-3"><CreditCard className="h-4 w-4" /> Payment Methods</span> <ArrowRight className="h-4 w-4 opacity-50" />
                 </button>
                 <button onClick={() => setActiveSheet("notifications")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#50540b] transition-colors py-2 border-t border-zinc-50 pt-4">
                   <span className="flex items-center gap-3"><Bell className="h-4 w-4" /> Notification Preferences</span> <ArrowRight className="h-4 w-4 opacity-50" />
@@ -287,18 +284,6 @@ export function ProfileClient({ user }: { user: any }) {
               </div>
             </form>
           )}
-        </SheetContent>
-      </Sheet>
-
-      <Sheet open={activeSheet === "payments"} onOpenChange={(o) => !o && setActiveSheet(null)}>
-        <SheetContent className="w-full sm:max-w-md border-none shadow-2xl p-8 z-[110]">
-          <SheetHeader className="mb-8">
-            <SheetTitle className="font-serif text-3xl font-bold text-zinc-900">Payment Methods</SheetTitle>
-          </SheetHeader>
-          <div className="text-center py-16 bg-[#fafafa] border border-zinc-100 rounded-2xl">
-            <CreditCard className="h-10 w-10 text-zinc-300 mx-auto mb-4" />
-            <p className="text-sm text-zinc-500 max-w-[200px] mx-auto">For security reasons, JMC does not store your card details directly.</p>
-          </div>
         </SheetContent>
       </Sheet>
 
