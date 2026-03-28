@@ -4,25 +4,32 @@ import { revalidatePath } from "next/cache";
 import { writeFile, unlink, mkdir } from "fs/promises"; 
 import { join } from "path";
 
-async function saveFile(file: File | null): Promise<string | null> {
-  if (!file || file.size === 0 || file.name === "undefined") return null;
-  
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  
-  const uniqueName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "")}`;
-  const uploadDir = join(process.cwd(), "public", "uploads");
-  
+async function saveFile(file: File | null | any): Promise<string | null> {
   try {
-    await mkdir(uploadDir, { recursive: true });
-  } catch (err) {
-    console.error("Folder creation error:", err);
-  }
+    if (!file || typeof file === "string" || file.size === 0 || !file.name || file.name === "undefined") {
+      return null;
+    }
+    
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    
+    const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
+    const uniqueName = `${Date.now()}-${safeFileName}`;
+    const uploadDir = join(process.cwd(), "public", "uploads");
+    
+    try {
+      await mkdir(uploadDir, { recursive: true });
+    } catch (err) {
+    }
 
-  const filePath = join(uploadDir, uniqueName);
-  await writeFile(filePath, buffer);
-  
-  return `/uploads/${uniqueName}`;
+    const filePath = join(uploadDir, uniqueName);
+    await writeFile(filePath, buffer);
+    
+    return `/uploads/${uniqueName}`;
+  } catch (error: any) {
+    console.error("Error saving file:", error);
+    throw new Error(`File save failed: ${error.message}`);
+  }
 }
 
 async function deleteFileFromDisk(imageUrl: string | null) {
@@ -40,19 +47,21 @@ export async function createProduct(formData: FormData) {
     const name = formData.get("name") as string;
     const slug = formData.get("slug") as string;
     const description = formData.get("description") as string;
-    const price = parseFloat(formData.get("price") as string);
-    const stock = parseInt(formData.get("stock") as string);
     const category = formData.get("category") as string;
     
+    const price = parseFloat(formData.get("price") as string);
+    const stock = parseInt(formData.get("stock") as string);
+    
+    // Strict Validation
     if (!name || !slug || isNaN(price) || isNaN(stock)) {
-      return { success: false, error: "Please ensure all required fields are filled correctly." };
+      return { success: false, error: "Validation Failed: Please fill all required fields correctly." };
     }
 
-    const mainImageFile = formData.get("mainImage") as File;
+    const mainImageFile = formData.get("mainImage");
     const imageUrl = await saveFile(mainImageFile);
 
-    const galleryFiles = formData.getAll("galleryImages") as File[];
-    const galleryUrls = [];
+    const galleryFiles = formData.getAll("galleryImages");
+    const galleryUrls: string[] = [];
     
     for (const file of galleryFiles) {
       const url = await saveFile(file);
@@ -61,23 +70,31 @@ export async function createProduct(formData: FormData) {
 
     await prisma.product.create({
       data: { 
-        name, slug, description, price, stock, category, 
-        imageUrl, images: galleryUrls 
+        name, 
+        slug, 
+        description, 
+        price, 
+        stock, 
+        category, 
+        imageUrl, 
+        images: galleryUrls 
       }
     });
 
     revalidatePath("/admin/products");
     revalidatePath("/admin");
     
-    // Redirect hata kar Success return kar rahe hain (Taaki UI crash na ho)
     return { success: true };
 
   } catch (error: any) {
-    console.error("Create Product Error:", error);
+    console.error("Create Product Fatal Error:", error);
+    
     if (error.code === 'P2002') {
-      return { success: false, error: "This Product Slug is already in use. Please enter a unique slug." };
+      return { success: false, error: "This Product Slug is already in use. Please try a different one." };
     }
-    return { success: false, error: "Database or File System error occurred." };
+    
+    // Return EXACT error message to frontend
+    return { success: false, error: error.message || "An unexpected database error occurred." };
   }
 }
 
@@ -86,19 +103,20 @@ export async function updateProduct(id: string, formData: FormData) {
     const name = formData.get("name") as string;
     const slug = formData.get("slug") as string;
     const description = formData.get("description") as string;
-    const price = parseFloat(formData.get("price") as string);
-    const stock = parseInt(formData.get("stock") as string);
     const category = formData.get("category") as string;
     
+    const price = parseFloat(formData.get("price") as string);
+    const stock = parseInt(formData.get("stock") as string);
+    
     if (!name || !slug || isNaN(price) || isNaN(stock)) {
-      return { success: false, error: "Please ensure all required fields (Price, Stock) are filled correctly." };
+      return { success: false, error: "Validation Failed: Please fill all required fields correctly." };
     }
 
-    const mainImageFile = formData.get("mainImage") as File;
+    const mainImageFile = formData.get("mainImage");
     const newImageUrl = await saveFile(mainImageFile);
 
-    const galleryFiles = formData.getAll("galleryImages") as File[];
-    const newGalleryUrls = [];
+    const galleryFiles = formData.getAll("galleryImages");
+    const newGalleryUrls: string[] = [];
     
     for (const file of galleryFiles) {
       const url = await saveFile(file);
@@ -133,31 +151,35 @@ export async function updateProduct(id: string, formData: FormData) {
     return { success: true };
 
   } catch (error: any) {
-    console.error("Product Update Error:", error);
+    console.error("Product Update Fatal Error:", error);
     if (error.code === 'P2002') {
       return { success: false, error: "This Product Slug is already in use. Please enter a unique slug." };
     }
-    return { success: false, error: "Something went wrong while updating." };
+    return { success: false, error: error.message || "Something went wrong while updating." };
   }
 }
 
 export async function deleteProduct(id: string) {
-  const product = await prisma.product.findUnique({ where: { id } });
-  
-  if (product) {
-    await deleteFileFromDisk(product.imageUrl);
-    const galleryImages = (product.images as string[]) || [];
-    for (const img of galleryImages) {
-      await deleteFileFromDisk(img);
+  try {
+    const product = await prisma.product.findUnique({ where: { id } });
+    
+    if (product) {
+      await deleteFileFromDisk(product.imageUrl);
+      const galleryImages = (product.images as string[]) || [];
+      for (const img of galleryImages) {
+        await deleteFileFromDisk(img);
+      }
     }
-  }
 
-  await prisma.product.delete({
-    where: { id }
-  });
-  
-  revalidatePath("/admin/products");
-  revalidatePath("/admin");
+    await prisma.product.delete({
+      where: { id }
+    });
+    
+    revalidatePath("/admin/products");
+    revalidatePath("/admin");
+  } catch (error) {
+    console.error("Delete Product Error:", error);
+  }
 }
 
 export async function deleteProductImage(productId: string, imageUrl: string, isMainImage: boolean) {
@@ -184,8 +206,8 @@ export async function deleteProductImage(productId: string, imageUrl: string, is
     
     revalidatePath(`/admin/products/${productId}/edit`);
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to delete image:", error);
-    return { success: false, error: "Failed to delete image file from database." };
+    return { success: false, error: error.message || "Failed to delete image file from database." };
   }
 }
