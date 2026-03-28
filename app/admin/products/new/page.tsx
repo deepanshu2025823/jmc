@@ -8,8 +8,10 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Save, Plus, Trash2, ImagePlus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation"; // 1. NAYA IMPORT
 
 export default function NewProductPage() {
+  const router = useRouter(); // 2. ROUTER INITIALIZE KIYA
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [saving, setSaving] = useState(false);
@@ -43,6 +45,7 @@ export default function NewProductPage() {
     setGalleryInputs(galleryInputs.filter((id) => id !== idToRemove));
   };
 
+  // 3. UPDATED SUBMIT FUNCTION
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
@@ -50,13 +53,18 @@ export default function NewProductPage() {
     const formData = new FormData(e.currentTarget);
     
     try {
-      await createProduct(formData);
-    } catch (error: any) {
-      if (error?.digest?.startsWith("NEXT_REDIRECT")) {
-        throw error;
+      const result = await createProduct(formData) as unknown as { success?: boolean; error?: string };
+      
+      if (result?.success) {
+        toast.success("Product created successfully!");
+        router.push("/admin/products"); // Success hone par redirect
+      } else {
+        toast.error(result?.error || "Failed to create product.");
+        setSaving(false);
       }
-      console.error("Create error:", error);
-      toast.error("Something went wrong. Slug might already exist.");
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Something went wrong while saving. Check if 'public/uploads' folder exists.");
       setSaving(false);
     }
   };
