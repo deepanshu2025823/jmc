@@ -129,7 +129,7 @@ export default function NewProductPage() {
             <div className="relative">
               <Input 
                 id="mainImage" name="mainImage" type="file" 
-                accept="image/png, image/jpeg, image/webp"
+                accept="image/*" 
                 onChange={handleFileChange}
                 className="bg-white cursor-pointer h-12 rounded-xl file:h-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#F9F6F0] file:text-[#B59461] hover:file:bg-[#B59461]/10" 
                 required
@@ -150,7 +150,7 @@ export default function NewProductPage() {
                 <div key={id} className="flex flex-row items-center gap-3">
                   <Input 
                     name="galleryImages" type="file" 
-                    accept="image/png, image/jpeg, image/webp"
+                    accept="image/*" 
                     onChange={handleFileChange}
                     className="bg-white cursor-pointer h-12 rounded-xl file:h-full file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-zinc-50 file:text-zinc-500 hover:file:bg-zinc-100" 
                   />
