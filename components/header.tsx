@@ -152,6 +152,20 @@ export function Header() {
                 >
                   Story
                 </Link>
+                <Link 
+                  href="/bestsellers" 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="text-xl font-bold uppercase tracking-[0.2em] text-zinc-600 hover:text-black transition-colors"
+                >
+                  Bestsellers
+                </Link>
+                <Link 
+                  href="/new-arrivals" 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="text-xl font-bold uppercase tracking-[0.2em] text-zinc-600 hover:text-black transition-colors"
+                >
+                  New Arrivals
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>
