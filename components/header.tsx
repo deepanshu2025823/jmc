@@ -150,7 +150,7 @@ export function Header() {
                   onClick={() => setIsMobileMenuOpen(false)} 
                   className="text-xl font-bold uppercase tracking-[0.2em] text-zinc-600 hover:text-black transition-colors"
                 >
-                  Story
+                  About Us
                 </Link>
                 <Link 
                   href="/bestsellers" 
@@ -172,7 +172,7 @@ export function Header() {
 
           <nav className="hidden md:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500 flex-1">
             <Link href="/shop" className="hover:text-black transition-colors font-bold">Shop</Link>
-            <Link href="/about" className="hover:text-black transition-colors font-bold">Story</Link>
+            <Link href="/about" className="hover:text-black transition-colors font-bold">About Us</Link>
             <Link href="/bestsellers" className="hover:text-black transition-colors font-bold">Bestsellers</Link>
             <Link href="/new-arrivals" className="hover:text-black transition-colors font-bold">New Arrivals</Link>
           </nav>
