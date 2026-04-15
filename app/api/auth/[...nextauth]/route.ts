@@ -9,13 +9,19 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
+        identifier: { label: "Email or Phone", type: "text" },
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
         otp: { label: "OTP", type: "text" } 
       },
       async authorize(credentials) {
-        if (!credentials?.email) return null;
-        const userEmail = credentials.email.toLowerCase();
+        const rawIdentifier = credentials?.identifier || credentials?.email;
+        if (!rawIdentifier) return null;
+        
+        const targetIdentifier = rawIdentifier.toLowerCase().trim();
+        const isEmail = targetIdentifier.includes('@');
+        
+        const userEmail = isEmail ? targetIdentifier : `${targetIdentifier.replace(/\D/g, '')}@phone.jmc.local`;
 
         let user = await prisma.user.findUnique({
           where: { email: userEmail }
@@ -43,24 +49,24 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (credentials.otp) {
-          const cachedData = otpCache.get(userEmail);
+          const cachedData = otpCache.get(targetIdentifier);
 
           if (!cachedData) throw new Error("OTP not requested or expired");
           if (Date.now() > cachedData.expires) {
-            otpCache.delete(userEmail); 
+            otpCache.delete(targetIdentifier); 
             throw new Error("OTP has expired");
           }
           if (cachedData.code !== credentials.otp) {
             throw new Error("Invalid verification code");
           }
 
-          otpCache.delete(userEmail);
+          otpCache.delete(targetIdentifier);
 
           if (!user) {
             user = await prisma.user.create({
               data: {
                 email: userEmail,
-                name: userEmail.split('@')[0], 
+                name: isEmail ? userEmail.split('@')[0] : targetIdentifier, 
                 password: "", 
                 role: "USER"
               }

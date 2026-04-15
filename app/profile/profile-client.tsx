@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label"; 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { Loader2, Trash2 } from "lucide-react";
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
@@ -17,42 +19,139 @@ const formatDate = (dateString: string) => {
 };
 
 export function ProfileClient({ user }: { user: any }) {
-  const [activeSheet, setActiveSheet] = useState<"invoice" | "addresses" | "notifications" | null>(null);
+  const [activeSheet, setActiveSheet] = useState<"invoice" | "addresses" | "notifications" | "profile" | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [mounted, setMounted] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
+  const [userData, setUserData] = useState(user);
   
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [smsNotif, setSMSNotif] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profilePhone, setProfilePhone] = useState(user.phone || "");
+  const [profileDob, setProfileDob] = useState(user.dob || "");
+  const [profileGender, setProfileGender] = useState(user.gender || "");
+  const [emailNotif, setEmailNotif] = useState(user.emailNotif ?? true);
+  const [smsNotif, setSMSNotif] = useState(user.smsNotif ?? false);
 
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState({ street: "", city: "", state: "", pincode: "" });
-  const [savedAddresses, setSavedAddresses] = useState([
-    { id: 1, street: "A-12, Luxury Residency, Phase 1, DLF", city: "New Delhi", state: "Delhi", pincode: "110001", isDefault: true }
-  ]);
+  const [savedAddresses, setSavedAddresses] = useState(user.addresses || []);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+  
+  useEffect(() => {
+    if (userData) {
+      const isPhone = userData.email?.includes('@phone.jmc.local');
+      setProfileName(isPhone && !userData.name ? '' : (userData.name || ''));
+      setProfilePhone(userData.phone || (isPhone ? userData.email.replace('@phone.jmc.local', '') : ''));
+      setProfileDob(userData.dob || "");
+      setProfileGender(userData.gender || "");
+    }
+  }, [userData]);
 
   const openInvoice = (order: any) => {
     setSelectedOrder(order);
     setActiveSheet("invoice");
   };
+  
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          action: "update_profile", 
+          name: profileName,
+          phone: profilePhone,
+          dob: profileDob,
+          gender: profileGender
+        }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setUserData({ ...userData, name: updated.name, phone: updated.phone, dob: updated.dob, gender: updated.gender });
+        toast.success("Profile updated successfully");
+        setActiveSheet(null);
+      } else throw new Error();
+    } catch (error) {
+      toast.error("Failed to update profile");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const handleSaveAddress = (e: React.FormEvent) => {
+  const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if(newAddress.street && newAddress.city && newAddress.pincode) {
-      setSavedAddresses([...savedAddresses, { 
-        id: Date.now(), 
-        ...newAddress, 
-        isDefault: savedAddresses.length === 0 
-      }]);
-      setNewAddress({ street: "", city: "", state: "", pincode: "" });
-      setIsAddingAddress(false);
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/user/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "add_address", ...newAddress, isDefault: savedAddresses.length === 0 })
+        });
+        if (res.ok) {
+          const addedAddress = await res.json();
+          setSavedAddresses([...savedAddresses, addedAddress]);
+          setNewAddress({ street: "", city: "", state: "", pincode: "" });
+          setIsAddingAddress(false);
+          toast.success("Address saved successfully");
+        } else throw new Error();
+      } catch(err) {
+        toast.error("Failed to save address");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+  
+  const handleDeleteAddress = async (addressId: string) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete_address", addressId })
+      });
+      if (res.ok) {
+        setSavedAddresses(savedAddresses.filter((a: any) => a.id !== addressId));
+        toast.success("Address removed");
+      } else throw new Error();
+    } catch(err) {
+      toast.error("Failed to delete address");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const toggleNotification = async (type: "email" | "sms", value: boolean) => {
+    if (type === "email") setEmailNotif(value);
+    if (type === "sms") setSMSNotif(value);
+    try {
+      await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          action: "update_notifications", 
+          emailNotif: type === 'email' ? value : emailNotif, 
+          smsNotif: type === 'sms' ? value : smsNotif 
+        })
+      });
+      toast.success("Preferences updated");
+    } catch(err) {
+      toast.error("Failed to update preferences");
     }
   };
 
   if (!mounted) return null;
+  
+  const isPhone = userData?.email?.includes('@phone.jmc.local');
+  const displayEmail = isPhone ? userData.email.replace('@phone.jmc.local', '') : userData.email;
+  const displayName = isPhone && !userData.name ? 'Valued Client' : (userData.name || 'Valued Client');
+  const avatarInitial = isPhone && !userData.name ? 'V' : (userData.name?.charAt(0).toUpperCase() || 'J');
 
   return (
     <main className="min-h-screen bg-[#fafafa] pb-32">
@@ -65,14 +164,14 @@ export function ProfileClient({ user }: { user: any }) {
             <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-zinc-100 flex flex-col items-center text-center">
               <div className="relative mb-6">
                 <div className="h-28 w-28 rounded-full bg-[#50540b] flex items-center justify-center text-white text-5xl font-serif shadow-xl">
-                  {user.name?.charAt(0).toUpperCase() || "J"}
+                  {avatarInitial}
                 </div>
                 <div className="absolute bottom-0 right-0 bg-emerald-50 p-2 rounded-full border-2 border-white">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
                 </div>
               </div>
-              <h1 className="text-2xl font-serif font-bold text-zinc-900 mb-1">{user.name}</h1>
-              <p className="text-xs text-zinc-400 font-medium tracking-wide break-all mb-6">{user.email}</p>
+              <h1 className="text-2xl font-serif font-bold text-zinc-900 mb-1">{displayName}</h1>
+              <p className="text-xs text-zinc-400 font-medium tracking-wide break-all mb-6">{displayEmail}</p>
               
               <div className="w-full pt-6 border-t border-zinc-50 flex items-center justify-between">
                 <div className="text-left">
@@ -89,6 +188,9 @@ export function ProfileClient({ user }: { user: any }) {
             <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-zinc-100">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6">Account Settings</h3>
               <div className="space-y-4">
+                <button onClick={() => setActiveSheet("profile")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#50540b] transition-colors py-2 border-b border-zinc-50 pb-4 mb-4">
+                  <span className="flex items-center gap-3"><User className="h-4 w-4" /> Update Profile</span> <ArrowRight className="h-4 w-4 opacity-50" />
+                </button>
                 <button onClick={() => setActiveSheet("addresses")} className="w-full flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-[#50540b] transition-colors py-2">
                   <span className="flex items-center gap-3"><MapPin className="h-4 w-4" /> Shipping Addresses</span> <ArrowRight className="h-4 w-4 opacity-50" />
                 </button>
@@ -179,7 +281,7 @@ export function ProfileClient({ user }: { user: any }) {
       </div>
 
       <Sheet open={activeSheet === "invoice"} onOpenChange={(o) => !o && setActiveSheet(null)}>
-        <SheetContent className="w-full sm:max-w-lg p-0 border-none shadow-2xl bg-white flex flex-col z-[110]">
+        <SheetContent aria-describedby={undefined} className="w-full sm:max-w-lg p-0 border-none shadow-2xl bg-white flex flex-col z-[110]">
           <SheetHeader className="p-8 border-b border-zinc-100 bg-[#fafafa]">
             <div className="flex justify-between items-center">
               <SheetTitle className="font-serif text-3xl font-bold text-zinc-900">Receipt</SheetTitle>
@@ -228,23 +330,79 @@ export function ProfileClient({ user }: { user: any }) {
         </SheetContent>
       </Sheet>
 
+      <Sheet open={activeSheet === "profile"} onOpenChange={(o) => !o && setActiveSheet(null)}>
+        <SheetContent aria-describedby={undefined} className="w-full sm:max-w-md border-none shadow-2xl p-8 z-[110]">
+          <SheetHeader className="mb-8">
+            <SheetTitle className="font-serif text-3xl font-bold text-zinc-900">Update Profile</SheetTitle>
+          </SheetHeader>
+          <form onSubmit={handleUpdateProfile} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Full Name</Label>
+                <Input 
+                  value={profileName} 
+                  onChange={(e) => setProfileName(e.target.value)} 
+                  placeholder="Enter your full name" 
+                  className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b]" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Phone Number</Label>
+                <Input 
+                  value={profilePhone} 
+                  onChange={(e) => setProfilePhone(e.target.value)} 
+                  placeholder="+91 0000000000" 
+                  className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b]" 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Date of Birth</Label>
+                  <Input 
+                    type="date"
+                    value={profileDob} 
+                    onChange={(e) => setProfileDob(e.target.value)} 
+                    className="h-12 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] text-sm px-3" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Gender</Label>
+                  <select value={profileGender} onChange={(e) => setProfileGender(e.target.value)} className="flex h-12 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm focus:border-[#50540b] focus:ring-2 focus:ring-[#50540b]/20 outline-none transition-all text-zinc-700">
+                    <option value="">Select</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <Button type="submit" disabled={isLoading} className="w-full h-14 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-[#50540b] transition-colors">
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Changes"}
+            </Button>
+          </form>
+        </SheetContent>
+      </Sheet>
+
       <Sheet open={activeSheet === "addresses"} onOpenChange={(o) => {
         if(!o) {
           setActiveSheet(null);
           setIsAddingAddress(false); 
         }
       }}>
-        <SheetContent className="w-full sm:max-w-md border-none shadow-2xl p-8 z-[110] overflow-y-auto">
+        <SheetContent aria-describedby={undefined} className="w-full sm:max-w-md border-none shadow-2xl p-8 z-[110] overflow-y-auto">
           <SheetHeader className="mb-8">
             <SheetTitle className="font-serif text-3xl font-bold text-zinc-900">Your Addresses</SheetTitle>
           </SheetHeader>
           
           {!isAddingAddress ? (
             <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
-              {savedAddresses.map((addr) => (
+              {savedAddresses.map((addr: any) => (
                 <div key={addr.id} className={cn("border rounded-2xl p-5 relative", addr.isDefault ? "border-[#50540b] bg-[#F9F6F0]/30" : "border-zinc-200 bg-white")}>
+                  <button disabled={isLoading} onClick={() => handleDeleteAddress(addr.id)} className="absolute bottom-4 right-4 p-2 text-zinc-400 hover:text-red-500 transition-colors bg-white rounded-full border border-zinc-100 hover:border-red-100 shadow-sm">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                   {addr.isDefault && <span className="absolute top-4 right-4 bg-[#50540b] text-white text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full">Default</span>}
-                  <p className="font-bold text-zinc-900 text-sm mb-1">{user.name}</p>
+                  <p className="font-bold text-zinc-900 text-sm mb-1">{displayName}</p>
                   <p className="text-xs text-zinc-500 leading-relaxed">{addr.street},<br/>{addr.city}, {addr.state},<br/>{addr.pincode}, India</p>
                 </div>
               ))}
@@ -278,8 +436,8 @@ export function ProfileClient({ user }: { user: any }) {
                 <Button type="button" onClick={() => setIsAddingAddress(false)} variant="outline" className="flex-1 h-12 rounded-xl text-xs font-bold border-zinc-200">
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1 h-12 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-[#50540b] transition-colors">
-                  Save Address
+                <Button type="submit" disabled={isLoading} className="flex-1 h-12 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-[#50540b] transition-colors">
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Address"}
                 </Button>
               </div>
             </form>
@@ -288,7 +446,7 @@ export function ProfileClient({ user }: { user: any }) {
       </Sheet>
 
       <Sheet open={activeSheet === "notifications"} onOpenChange={(o) => !o && setActiveSheet(null)}>
-        <SheetContent className="w-full sm:max-w-md border-none shadow-2xl p-8 z-[110]">
+        <SheetContent aria-describedby={undefined} className="w-full sm:max-w-md border-none shadow-2xl p-8 z-[110]">
           <SheetHeader className="mb-8">
             <SheetTitle className="font-serif text-3xl font-bold text-zinc-900">Notifications</SheetTitle>
           </SheetHeader>
@@ -298,7 +456,7 @@ export function ProfileClient({ user }: { user: any }) {
                 <p className="font-bold text-sm text-zinc-900">Email Updates</p>
                 <p className="text-xs text-zinc-500">Order confirmations and receipts.</p>
               </div>
-              <button onClick={() => setEmailNotif(!emailNotif)} className={cn("w-12 h-7 rounded-full transition-colors relative", emailNotif ? "bg-[#50540b]" : "bg-zinc-200")}>
+              <button onClick={() => toggleNotification("email", !emailNotif)} className={cn("w-12 h-7 rounded-full transition-colors relative", emailNotif ? "bg-[#50540b]" : "bg-zinc-200")}>
                 <div className={cn("h-5 w-5 bg-white rounded-full absolute top-1 transition-all shadow-sm", emailNotif ? "left-6" : "left-1")} />
               </button>
             </div>
@@ -307,7 +465,7 @@ export function ProfileClient({ user }: { user: any }) {
                 <p className="font-bold text-sm text-zinc-900">SMS Alerts</p>
                 <p className="text-xs text-zinc-500">Delivery tracking and real-time updates.</p>
               </div>
-              <button onClick={() => setSMSNotif(!smsNotif)} className={cn("w-12 h-7 rounded-full transition-colors relative", smsNotif ? "bg-[#50540b]" : "bg-zinc-200")}>
+              <button onClick={() => toggleNotification("sms", !smsNotif)} className={cn("w-12 h-7 rounded-full transition-colors relative", smsNotif ? "bg-[#50540b]" : "bg-zinc-200")}>
                 <div className={cn("h-5 w-5 bg-white rounded-full absolute top-1 transition-all shadow-sm", smsNotif ? "left-6" : "left-1")} />
               </button>
             </div>

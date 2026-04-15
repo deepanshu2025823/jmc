@@ -1,24 +1,29 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import twilio from "twilio";
 import { otpCache } from "@/lib/otp-store"; 
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    const body = await req.json();
+    const identifier = body.identifier || body.email;
+    
+    if (!identifier) {
+      return NextResponse.json({ error: "Email or Phone is required" }, { status: 400 });
     }
 
-    const userEmail = email.toLowerCase();
+    const targetIdentifier = identifier.toLowerCase().trim();
+    const isEmail = targetIdentifier.includes("@");
     
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    otpCache.set(userEmail, {
+    otpCache.set(targetIdentifier, {
       code: otp,
       expires: Date.now() + 10 * 60 * 1000, 
     });
 
-    const transporter = nodemailer.createTransport({
+    if (isEmail) {
+      const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com", 
       port: 465,              
       secure: true,           
@@ -81,13 +86,36 @@ export async function POST(req: Request) {
 
     await transporter.sendMail({
       from: `"JMC Secret Rituals" <${process.env.EMAIL_USER}>`,
-      to: userEmail,
+      to: targetIdentifier,
       subject: "JMC Rituals - Your Secure Access Code",
       html: emailHtml,
     });
+    } else {
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+      
+      if (!accountSid || !authToken) {
+        throw new Error("Twilio credentials are not configured in environment variables.");
+      }
+
+      let formattedPhone = targetIdentifier;
+      if (!formattedPhone.startsWith('+')) {
+        const digits = formattedPhone.replace(/\D/g, '');
+        // Default to India (+91) if exactly 10 digits are entered without a country code
+        formattedPhone = digits.length === 10 ? `+91${digits}` : `+${digits}`;
+      }
+
+      const client = twilio(accountSid, authToken);
+      await client.messages.create({
+        body: `Your JMC Secret Rituals secure access code is: ${otp}. It will gracefully expire in 10 minutes.`,
+        messagingServiceSid: messagingServiceSid,
+        to: formattedPhone,
+      });
+    }
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[DEV OTP GENERATED] For ${userEmail}: ${otp}`);
+      console.log(`[DEV OTP GENERATED] For ${targetIdentifier}: ${otp}`);
     }
 
     return NextResponse.json({ message: "OTP Sent successfully" }); 

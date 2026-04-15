@@ -4,7 +4,7 @@ import { useCartStore } from "@/hooks/use-cart-store";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShieldCheck, ArrowLeft, Truck, PackageCheck, AlertCircle, CreditCard, Loader2 } from "lucide-react";
+import { ShieldCheck, ArrowLeft, Truck, PackageCheck, AlertCircle, CreditCard, Loader2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useOrderActions } from "@/actions/order";
@@ -26,13 +26,17 @@ export default function CheckoutClient({
   isRazorpayEnabled, 
   razorpayKeyId,
   userEmail,
-  userName
+  userName,
+  userPhone,
+  savedAddresses
 }: { 
   isCodEnabled: boolean;
   isRazorpayEnabled: boolean;
   razorpayKeyId: string;
   userEmail: string;
   userName: string;
+  userPhone: string;
+  savedAddresses: any[];
 }) {
   const { cart, appliedCoupon } = useCartStore() as any;
   const { placeCODOrder } = useOrderActions(); 
@@ -41,6 +45,26 @@ export default function CheckoutClient({
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">(
     isCodEnabled ? "COD" : (isRazorpayEnabled ? "ONLINE" : "COD")
   );
+
+  const [firstName, setFirstName] = useState(userName.split(' ')[0] || "");
+  const [lastName, setLastName] = useState(userName.split(' ').slice(1).join(' ') || "");
+  const [phone, setPhone] = useState(userPhone || "");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("new");
+
+  useEffect(() => {
+    if (savedAddresses && savedAddresses.length > 0) {
+      const defaultAddr = savedAddresses.find((a: any) => a.isDefault) || savedAddresses[0];
+      setSelectedAddressId(defaultAddr.id);
+      setAddress(defaultAddr.street);
+      setCity(defaultAddr.city);
+      setState(defaultAddr.state);
+      setPincode(defaultAddr.pincode);
+    }
+  }, [savedAddresses]);
 
   const subtotal = cart.reduce((acc: number, item: any) => acc + (Number(item.price) * (item.quantity || 1)), 0);
   let discount = 0;
@@ -86,6 +110,7 @@ export default function CheckoutClient({
         prefill: {
           name: `${data.firstName} ${data.lastName}` || userName,
           email: userEmail,
+          contact: data.phone || userPhone
         },
         theme: {
           color: "#50540b", 
@@ -120,26 +145,68 @@ export default function CheckoutClient({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              
+              {savedAddresses && savedAddresses.length > 0 && (
+                <div className="space-y-3 mb-8 bg-zinc-50/50 p-4 rounded-3xl border border-zinc-100">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Select Saved Address</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {savedAddresses.map((addr: any) => (
+                      <div 
+                        key={addr.id}
+                        onClick={() => {
+                          setSelectedAddressId(addr.id);
+                          setAddress(addr.street);
+                          setCity(addr.city);
+                          setState(addr.state);
+                          setPincode(addr.pincode);
+                        }}
+                        className={cn("border rounded-2xl p-4 cursor-pointer transition-all bg-white", selectedAddressId === addr.id ? "border-[#50540b] shadow-md ring-1 ring-[#50540b]/10" : "border-zinc-200 hover:border-zinc-300")}
+                      >
+                        <div className="flex items-start gap-3">
+                          <MapPin className={cn("h-4 w-4 mt-0.5 shrink-0", selectedAddressId === addr.id ? "text-[#50540b]" : "text-zinc-400")} />
+                          <div>
+                            <p className="text-xs text-zinc-600 line-clamp-2 leading-relaxed">{addr.street}, {addr.city}, {addr.state} - {addr.pincode}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div 
+                      onClick={() => {
+                        setSelectedAddressId("new");
+                        setAddress(""); setCity(""); setState(""); setPincode("");
+                      }}
+                      className={cn("border rounded-2xl p-4 cursor-pointer transition-all flex items-center justify-center text-xs font-bold uppercase tracking-widest bg-white", selectedAddressId === "new" ? "border-[#50540b] text-[#50540b] shadow-md ring-1 ring-[#50540b]/10" : "border-dashed border-zinc-300 text-zinc-400 hover:border-zinc-400 hover:text-zinc-600")}
+                    >
+                      + Use New Address
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">First Name</label>
-                  <Input name="firstName" required placeholder="i.e., John" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
+                  <Input name="firstName" value={firstName} onChange={e => setFirstName(e.target.value)} required placeholder="i.e., John" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Last Name</label>
-                  <Input name="lastName" required placeholder="i.e., Doe" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
+                  <Input name="lastName" value={lastName} onChange={e => setLastName(e.target.value)} required placeholder="i.e., Doe" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Delivery Address</label>
-                <Input name="address" required placeholder="Apartment, suite, etc." className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Phone Number</label>
+                <Input name="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="+91 0000000000" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Input name="city" required placeholder="City" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
-                <Input name="state" required placeholder="State" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
-                <Input name="pincode" required placeholder="Pincode" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
+                <div className="space-y-2 md:col-span-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Street Address</label>
+                  <Input name="address" value={address} onChange={e => setAddress(e.target.value)} required placeholder="Apartment, suite, etc." className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
+                </div>
+                <Input name="city" value={city} onChange={e => setCity(e.target.value)} required placeholder="City" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
+                <Input name="state" value={state} onChange={e => setState(e.target.value)} required placeholder="State" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
+                <Input name="pincode" value={pincode} onChange={e => setPincode(e.target.value)} required placeholder="Pincode" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
               </div>
 
               <div className="pt-10 border-t border-zinc-50 mt-10">

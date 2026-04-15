@@ -16,7 +16,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/profile"; 
   
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [isOtpStep, setIsOtpStep] = useState(false);
@@ -34,7 +34,7 @@ function LoginContent() {
 
     const res = await signIn("credentials", {
       redirect: false,
-      email,
+      identifier,
       password,
       callbackUrl,
     });
@@ -51,12 +51,12 @@ function LoginContent() {
   };
 
   const handleSendOTP = async () => {
-    if (!email) return toast.error("Enter your email");
+    if (!identifier) return toast.error("Enter your email or phone");
     setLoading(true);
     try {
       const res = await fetch("/api/auth/otp", {
         method: "POST",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ identifier }),
       });
       if (res.ok) {
         setIsOtpStep(true);
@@ -77,7 +77,7 @@ function LoginContent() {
     
     setLoading(true);
     const result = await signIn("credentials", {
-      email,
+      identifier,
       otp,
       redirect: false,
       callbackUrl,
@@ -181,7 +181,7 @@ function LoginContent() {
                 {error && <div className="p-4 text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl text-center uppercase tracking-widest">{error}</div>}
                 <div className="space-y-3">
                   <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Admin Email</Label>
-                  <Input type="email" placeholder="admin@jmc.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] focus:ring-[#50540b]/20 transition-all" />
+                  <Input type="text" placeholder="admin@jmc.com" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] focus:ring-[#50540b]/20 transition-all" />
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
@@ -201,12 +201,12 @@ function LoginContent() {
                 {!isOtpStep ? (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="space-y-3">
-                      <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Email Address</Label>
+                      <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Email or Phone Number</Label>
                       <Input 
-                        type="email" 
-                        placeholder="client@example.com" 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
+                        type="text" 
+                        placeholder="client@example.com or +1234567890" 
+                        value={identifier} 
+                        onChange={(e) => setIdentifier(e.target.value)} 
                         className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] focus:ring-[#50540b]/20 transition-all px-5" 
                       />
                     </div>
@@ -218,7 +218,7 @@ function LoginContent() {
                   <form onSubmit={handleVerifyOTP} className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
                     <div className="space-y-4 text-center">
                       <Label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
-                        Code sent to <br/><span className="text-zinc-900 lowercase tracking-normal text-sm mt-1 inline-block">{email}</span>
+                        Code sent to <br/><span className="text-zinc-900 lowercase tracking-normal text-sm mt-1 inline-block">{identifier}</span>
                       </Label>
                       
                       <div className="flex justify-center gap-2 md:gap-3 pt-2">
@@ -244,10 +244,10 @@ function LoginContent() {
                       </Button>
                       <button 
                         type="button" 
-                        onClick={() => { setIsOtpStep(false); setOtp(""); }} 
+                        onClick={() => { setIsOtpStep(false); setOtp(""); }}
                         className="w-full flex items-center justify-center gap-2 text-[10px] font-bold text-zinc-400 hover:text-zinc-900 transition-colors uppercase tracking-widest"
                       >
-                        <ArrowLeft className="h-3 w-3" /> Change Email
+                        <ArrowLeft className="h-3 w-3" /> Change Method
                       </button>
                     </div>
                   </form>

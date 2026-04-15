@@ -17,6 +17,7 @@ export default async function ProfilePage() {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email as string },
       include: {
+        addresses: true,
         orders: {
           orderBy: { createdAt: 'desc' },
           include: {
@@ -34,6 +35,11 @@ export default async function ProfilePage() {
       ...user,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
+      addresses: user.addresses?.map((addr: any) => ({
+        ...addr,
+        createdAt: addr.createdAt.toISOString(),
+        updatedAt: addr.updatedAt.toISOString(),
+      })) || [],
       orders: user.orders.map(order => ({
         ...order,
         createdAt: order.createdAt.toISOString(),

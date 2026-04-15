@@ -13,6 +13,11 @@ export default async function CheckoutPage() {
     redirect("/login?callbackUrl=/checkout");
   }
 
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email as string },
+    include: { addresses: true }
+  });
+
   let settings = await prisma.storeSettings.findFirst();
   
   if (!settings) {
@@ -27,7 +32,9 @@ export default async function CheckoutPage() {
       isRazorpayEnabled={settings.isRazorpayEnabled}
       razorpayKeyId={settings.razorpayKeyId || ""}
       userEmail={session.user.email || ""}
-      userName={session.user.name || ""}
+      userName={user?.name || ""}
+      userPhone={user?.phone || ""}
+      savedAddresses={user?.addresses || []}
     />
   );
 }

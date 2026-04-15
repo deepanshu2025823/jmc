@@ -23,9 +23,15 @@ model User {
   id        String   @id @default(uuid())
   name      String?
   email     String   @unique
+  phone     String?
+  dob       String?
+  gender    String?
   password  String   // Hashed password save karenge authentication ke time
   role      Role     @default(USER)
+  emailNotif Boolean @default(true)
+  smsNotif   Boolean @default(false)
   orders    Order[]
+  addresses Address[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -90,4 +96,17 @@ model Newsletter {
   id        String   @id @default(uuid())
   email     String   @unique
   createdAt DateTime @default(now())
+}
+
+model Address {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  street    String
+  city      String
+  state     String
+  pincode   String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
