@@ -12,7 +12,7 @@ export function Hero() {
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#50540b]">Luxury Skincare Expert</span>
           </div>
           <h1 className="text-4xl lg:text-7xl font-serif text-zinc-900 leading-[1.1]">
-            Radiant Skin <br /> <span className="italic text-[#50540b]">Starts Here</span>
+            Luxury Skincare Crafted <br /> <span className="italic text-[#50540b]">For Real Results</span>
           </h1>
           <p className="text-zinc-600 max-w-lg text-[12px] md:text-xl leading-relaxed mx-auto lg:mx-0">
             Experience the perfection of nature-meets-science with our premium skincare range tailored for your unique beauty.
@@ -50,7 +50,7 @@ export function Hero() {
         <div className="flex-1 relative mt-16 lg:mt-0 w-full max-w-xl">
           <div className="relative aspect-[4/5] rounded-t-full overflow-hidden border-[12px] border-white shadow-2xl">
             <Image 
-              src="/uploads/1774286793484-Ultraluxuryskincareeditorial4k20260202221.jpeg"
+              src="https://drive.google.com/uc?export=view&id=1raF6esPau_K9vXK7AykA0zONOg1_uKWQ"
               alt="Model with glowing skin"
               fill
               className="object-cover"
