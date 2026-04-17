@@ -40,7 +40,7 @@ export default function AboutPage() {
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#50540b]">Founder Story</span>
             </div>
             <h2 className="text-3xl md:text-5xl font-serif text-zinc-900 leading-tight">
-              Meet <span className="italic text-[#50540b]">Jaya Marwa</span>
+              Meet <span className="text-[#50540b]">Jaya Marwa</span>
             </h2>
             <div className="space-y-6 text-zinc-500 leading-relaxed text-lg">
               <p>
