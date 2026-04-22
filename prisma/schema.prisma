@@ -7,33 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
-enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  DELIVERED
-}
-
 model User {
-  id        String   @id @default(uuid())
-  name      String?
-  email     String   @unique
-  phone     String?
-  dob       String?
-  gender    String?
-  password  String   // Hashed password save karenge authentication ke time
-  role      Role     @default(USER)
-  emailNotif Boolean @default(true)
-  smsNotif   Boolean @default(false)
-  orders    Order[]
-  addresses Address[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(uuid())
+  name       String?
+  email      String    @unique
+  password   String
+  role       Role      @default(USER)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  emailNotif Boolean   @default(true)
+  smsNotif   Boolean   @default(false)
+  dob        String?
+  gender     String?
+  phone      String?
+  addresses  Address[]
+  orders     Order[]
 }
 
 model Product {
@@ -42,41 +30,46 @@ model Product {
   slug        String      @unique
   description String      @db.Text
   price       Decimal     @db.Decimal(10, 2)
-  imageUrl    String?     
+  imageUrl    String?
   images      Json?
   stock       Int         @default(0)
   category    String?
-  orderItems  OrderItem[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
 }
 
 model Order {
   id          String      @id @default(uuid())
-  user        User        @relation(fields: [userId], references: [id])
   userId      String
-  orderItems  OrderItem[]
   totalAmount Decimal     @db.Decimal(10, 2)
   status      OrderStatus @default(PENDING)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  user        User        @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+
+  @@index([userId], map: "Order_userId_fkey")
 }
 
 model OrderItem {
   id        String  @id @default(uuid())
-  order     Order   @relation(fields: [orderId], references: [id])
   orderId   String
-  product   Product @relation(fields: [productId], references: [id])
   productId String
   quantity  Int
-  price     Decimal @db.Decimal(10, 2) // Price at the time of purchase
+  price     Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId], map: "OrderItem_orderId_fkey")
+  @@index([productId], map: "OrderItem_productId_fkey")
 }
 
 model Coupon {
   id            String   @id @default(uuid())
-  code          String   @unique // Example: DIWALI50
-  discountValue Int      // Kitna discount (e.g., 100 for Rs. 100 or 10 for 10%)
-  type          String   @default("FIXED") // "FIXED" (Price) or "PERCENTAGE" (%)
+  code          String   @unique
+  discountValue Int
+  type          String   @default("FIXED")
   expiresAt     DateTime
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
@@ -86,9 +79,9 @@ model Coupon {
 model StoreSettings {
   id                String   @id @default(uuid())
   isCodEnabled      Boolean  @default(true)
-  isRazorpayEnabled Boolean  @default(false) // Razorpay On/Off
-  razorpayKeyId     String?  // Client's Key ID
-  razorpayKeySecret String?  // Client's Secret Key
+  isRazorpayEnabled Boolean  @default(false)
+  razorpayKeyId     String?
+  razorpayKeySecret String?
   updatedAt         DateTime @updatedAt
 }
 
@@ -101,7 +94,6 @@ model Newsletter {
 model Address {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   street    String
   city      String
   state     String
@@ -109,4 +101,19 @@ model Address {
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "Address_userId_fkey")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
 }

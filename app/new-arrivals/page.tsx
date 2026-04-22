@@ -4,16 +4,22 @@ import { NewArrivalsClient } from "./new-arrivals-client";
 export const dynamic = "force-dynamic";
 
 export default async function NewArrivalsPage() {
-  const rawProducts = await prisma.product.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 12, 
-  });
+  let plainProducts: any[] = [];
 
-  const plainProducts = rawProducts.map((product) => ({
-    ...product,
-    price: Number(product.price),
-    images: Array.isArray(product.images) ? product.images : [product.imageUrl]
-  }));
+  try {
+    const rawProducts = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 12,
+    });
+
+    plainProducts = rawProducts.map((product) => ({
+      ...product,
+      price: Number(product.price),
+      images: Array.isArray(product.images) ? product.images : [product.imageUrl],
+    }));
+  } catch (error) {
+    console.error("NewArrivalsPage DB error:", error);
+  }
 
   return <NewArrivalsClient initialProducts={plainProducts} />;
 }
