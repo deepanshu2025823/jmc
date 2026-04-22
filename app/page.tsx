@@ -4,6 +4,7 @@ import { TrustBadges } from "@/components/trust-badges";
 import { Bestsellers } from "@/components/bestsellers";
 import { QuizBanner } from "@/components/quiz-banner";
 import { Newsletter } from "@/components/newsletter";
+import { Reviews } from "@/components/reviews";
 import { Sparkles, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
 
@@ -16,6 +17,7 @@ export default function HomePage() {
       <TrustBadges />
       <Bestsellers />
       <QuizBanner />
+      <Reviews />
       <Newsletter />
       
     </main>
