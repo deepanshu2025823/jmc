@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,27 @@ export function ProductGallery({ images, productName }: { images: string[]; prod
 
   const prev = () => setStart((s) => Math.max(0, s - 1));
   const next = () => setStart((s) => Math.min(images.length - VISIBLE, s + 1));
+
+  const touchStartX = useRef(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) < 50) return;
+    const idx = images.indexOf(selected);
+    if (diff > 0 && idx < images.length - 1) {
+      const newIdx = idx + 1;
+      setSelected(images[newIdx]);
+      if (newIdx >= start + VISIBLE) setStart(Math.min(newIdx - VISIBLE + 1, images.length - VISIBLE));
+    } else if (diff < 0 && idx > 0) {
+      const newIdx = idx - 1;
+      setSelected(images[newIdx]);
+      if (newIdx < start) setStart(newIdx);
+    }
+  };
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
@@ -135,6 +156,8 @@ export function ProductGallery({ images, productName }: { images: string[]; prod
         onMouseEnter={() => setShowMagnifier(true)}
         onMouseLeave={() => setShowMagnifier(false)}
         onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <Image
           src={selected}
