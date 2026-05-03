@@ -3,6 +3,9 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { OrderStatus } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function updateAdminProfile(userId: string, newName: string, newEmail: string) {
   try {
@@ -24,6 +27,51 @@ export async function updateAdminProfile(userId: string, newName: string, newEma
   } catch (error) {
     console.error("Profile Update Error:", error);
     return { success: false, error: "Failed to update profile." };
+  }
+}
+
+export async function changeAdminPassword(currentPassword: string, newPassword: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email || session.user.role !== "ADMIN") {
+      return { success: false, error: "Unauthorized." };
+    }
+
+    if (!currentPassword || !newPassword) {
+      return { success: false, error: "Both current and new passwords are required." };
+    }
+
+    if (newPassword.length < 8) {
+      return { success: false, error: "New password must be at least 8 characters long." };
+    }
+
+    if (currentPassword === newPassword) {
+      return { success: false, error: "New password must be different from the current password." };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email as string },
+    });
+
+    if (!user || !user.password) {
+      return { success: false, error: "Account not found or no password set." };
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) {
+      return { success: false, error: "Current password is incorrect." };
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashed },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Change Password Error:", error);
+    return { success: false, error: "Failed to change password." };
   }
 }
 

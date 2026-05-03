@@ -4,9 +4,9 @@ import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { User, Mail, ShieldCheck, Calendar, Loader2, Save } from "lucide-react";
+import { User, Mail, ShieldCheck, Calendar, Loader2, Save, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
 import { toast } from "sonner";
-import { updateAdminProfile } from "@/actions/admin";
+import { updateAdminProfile, changeAdminPassword } from "@/actions/admin";
 
 export interface AdminProfileUser {
   id: string;
@@ -18,8 +18,43 @@ export interface AdminProfileUser {
 
 export function AdminProfileClient({ user }: { user: AdminProfileUser }) {
   const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email); 
+  const [email, setEmail] = useState(user.email);
   const [isPending, startTransition] = useTransition();
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isPwPending, startPwTransition] = useTransition();
+
+  const handleChangePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return toast.error("All password fields are required");
+    }
+    if (newPassword.length < 8) {
+      return toast.error("New password must be at least 8 characters");
+    }
+    if (newPassword !== confirmPassword) {
+      return toast.error("New password and confirmation do not match");
+    }
+    if (currentPassword === newPassword) {
+      return toast.error("New password must be different from current password");
+    }
+
+    startPwTransition(async () => {
+      const res = await changeAdminPassword(currentPassword, newPassword);
+      if (res.success) {
+        toast.success("Password updated successfully!");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error(res.error || "Failed to change password.");
+      }
+    });
+  };
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -134,6 +169,109 @@ export function AdminProfileClient({ user }: { user: AdminProfileUser }) {
                     <Save className="h-4 w-4 mr-2" />
                   )}
                   {isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+
+            </CardContent>
+          </Card>
+
+          <Card className="border-zinc-200 shadow-sm bg-white rounded-[2rem] mt-8">
+            <CardHeader className="pb-6 border-b border-zinc-100 px-8 pt-8">
+              <CardTitle className="text-lg font-bold flex items-center gap-2 text-zinc-900">
+                <KeyRound className="h-5 w-5 text-[#B59461]" /> Change Password
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 p-8">
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Current Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                  <Input
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    type={showCurrent ? "text" : "password"}
+                    placeholder="Enter your current password"
+                    className="pl-11 pr-11 h-12 rounded-xl bg-zinc-50/50 border-zinc-200 focus:border-[#B59461] font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent((s) => !s)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
+                    aria-label={showCurrent ? "Hide password" : "Show password"}
+                  >
+                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">New Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                  <Input
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    type={showNew ? "text" : "password"}
+                    placeholder="At least 8 characters"
+                    className="pl-11 pr-11 h-12 rounded-xl bg-zinc-50/50 border-zinc-200 focus:border-[#B59461] font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew((s) => !s)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
+                    aria-label={showNew ? "Hide password" : "Show password"}
+                  >
+                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Confirm New Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                  <Input
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="Re-enter your new password"
+                    className="pl-11 pr-11 h-12 rounded-xl bg-zinc-50/50 border-zinc-200 focus:border-[#B59461] font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((s) => !s)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
+                    aria-label={showConfirm ? "Hide password" : "Show password"}
+                  >
+                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+                  <p className="text-xs text-red-600 font-medium mt-2">
+                    Passwords do not match.
+                  </p>
+                )}
+              </div>
+
+              <div className="pt-6">
+                <Button
+                  onClick={handleChangePassword}
+                  disabled={
+                    isPwPending ||
+                    !currentPassword ||
+                    !newPassword ||
+                    !confirmPassword ||
+                    newPassword !== confirmPassword
+                  }
+                  className="h-12 px-8 rounded-xl bg-zinc-900 hover:bg-[#B59461] text-white font-bold text-xs uppercase tracking-widest transition-all"
+                >
+                  {isPwPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <KeyRound className="h-4 w-4 mr-2" />
+                  )}
+                  {isPwPending ? "Updating..." : "Update Password"}
                 </Button>
               </div>
 
