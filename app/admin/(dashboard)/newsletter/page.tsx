@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
-import { Mail, Calendar, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Mail, Calendar } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ExportCsvButton, RemoveSubscriberButton } from "./newsletter-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -10,17 +10,23 @@ export default async function NewsletterPage() {
     orderBy: { createdAt: "desc" }
   });
 
+  const exportData = subscribers.map((s) => ({
+    id: s.id,
+    email: s.email,
+    createdAt: s.createdAt.toISOString(),
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">Newsletter Leads</h1>
-          <p className="text-sm sm:text-base text-zinc-500 mt-1">Manage your email marketing subscribers.</p>
+          <p className="text-sm sm:text-base text-zinc-500 mt-1">
+            Manage your email marketing subscribers. {subscribers.length} total.
+          </p>
         </div>
-        
-        <Button className="rounded-full bg-zinc-900 hover:bg-[#B59461] text-white font-bold h-10 px-6">
-          Export as CSV
-        </Button>
+
+        <ExportCsvButton subscribers={exportData} />
       </div>
 
       <div className="border border-zinc-200 rounded-2xl bg-white shadow-sm overflow-hidden">
@@ -68,9 +74,7 @@ export default async function NewsletterPage() {
                   </TableCell>
 
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" className="h-8 text-red-500 hover:text-red-700 hover:bg-red-50 font-bold px-3">
-                      <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Remove
-                    </Button>
+                    <RemoveSubscriberButton id={sub.id} email={sub.email} />
                   </TableCell>
                 </TableRow>
               ))}

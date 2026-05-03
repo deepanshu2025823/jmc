@@ -1,22 +1,39 @@
 "use client";
 import { useState } from "react";
+import { toast } from "sonner";
 import { subscribeToNewsletter } from "@/actions/newsletter";
 import { Mail, Loader2, CheckCircle2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+type Status = "idle" | "success" | "already" | "error";
+
 export function Newsletter() {
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [status, setStatus] = useState<Status>("idle");
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
+    setErrorMsg("");
     const result = await subscribeToNewsletter(formData);
     setLoading(false);
 
     if (result.success) {
-      setStatus("success");
+      if (result.alreadySubscribed) {
+        setStatus("already");
+        toast.info("You're already subscribed ✨", {
+          description: "This email is already on our list — thank you for being a member.",
+        });
+      } else {
+        setStatus("success");
+        toast.success("Subscribed successfully! ✨", {
+          description: "Welcome to the JMC inner circle. Check your inbox for a welcome note.",
+        });
+      }
     } else {
       setStatus("error");
+      setErrorMsg(result.error || "Something went wrong. Please try again.");
+      toast.error(result.error || "Something went wrong. Please try again.");
     }
   }
 
@@ -42,12 +59,18 @@ export function Newsletter() {
             </p>
           </div>
 
-          {status === "success" ? (
+          {status === "success" || status === "already" ? (
             <div className="animate-in zoom-in duration-300 py-4">
               <div className="flex flex-col items-center gap-3">
                 <CheckCircle2 className="h-12 w-12 text-[#50540b]" />
-                <p className="text-lg font-bold text-zinc-900">You&apos;re on the list! ✨</p>
-                <p className="text-sm text-zinc-500">Check your email for a special welcome gift.</p>
+                <p className="text-lg font-bold text-zinc-900">
+                  {status === "already" ? "You're already on the list ✨" : "You're on the list! ✨"}
+                </p>
+                <p className="text-sm text-zinc-500">
+                  {status === "already"
+                    ? "Thanks for being part of our community."
+                    : "Check your email for a special welcome gift."}
+                </p>
               </div>
             </div>
           ) : (
@@ -70,7 +93,9 @@ export function Newsletter() {
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Subscribe"}
                 </Button>
               </div>
-              {status === "error" && <p className="text-red-500 text-xs mt-3 font-medium">Something went wrong. Try again.</p>}
+              {status === "error" && (
+                <p className="text-red-500 text-xs mt-3 font-medium">{errorMsg || "Something went wrong. Try again."}</p>
+              )}
             </form>
           )}
 
