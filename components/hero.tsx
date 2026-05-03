@@ -36,13 +36,9 @@ export function Hero() {
               <p className="font-bold text-xl">50K+</p>
               <p className="text-xs uppercase tracking-tighter text-zinc-500">Happy Clients</p>
             </div>
-            <div className="text-center lg:text-left border-x px-8 border-zinc-200">
+            <div className="text-center lg:text-left border-l pl-8 border-zinc-200">
               <p className="font-bold text-xl">4.9★</p>
               <p className="text-xs uppercase tracking-tighter text-zinc-500">Avg Rating</p>
-            </div>
-            <div className="text-center lg:text-left">
-              <p className="font-bold text-xl">100+</p>
-              <p className="text-xs uppercase tracking-tighter text-zinc-500">Products</p>
             </div>
           </div>
         </div>
