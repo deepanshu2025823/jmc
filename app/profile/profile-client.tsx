@@ -1,16 +1,54 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Header } from "@/components/header";
-import { User, Package, Calendar, Clock, ArrowRight, ShieldCheck, ShoppingBag, MapPin, CreditCard, Bell, Printer } from "lucide-react";
+import { User, Package, Calendar, Clock, ArrowRight, ShieldCheck, ShoppingBag, MapPin, Bell, Printer } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; 
-import { Label } from "@/components/ui/label"; 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Loader2, Trash2 } from "lucide-react";
+
+export interface ProfileAddress {
+  id: string;
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault: boolean;
+}
+
+export interface ProfileOrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  product: { name: string; imageUrl: string | null };
+}
+
+export interface ProfileOrder {
+  id: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  orderItems: ProfileOrderItem[];
+}
+
+export interface ProfileUser {
+  id: string;
+  name: string | null;
+  email: string;
+  phone: string | null;
+  dob: string | null;
+  gender: string | null;
+  emailNotif: boolean;
+  smsNotif: boolean;
+  addresses: ProfileAddress[];
+  orders: ProfileOrder[];
+}
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
@@ -18,9 +56,9 @@ const formatDate = (dateString: string) => {
   return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 };
 
-export function ProfileClient({ user }: { user: any }) {
+export function ProfileClient({ user }: { user: ProfileUser }) {
   const [activeSheet, setActiveSheet] = useState<"invoice" | "addresses" | "notifications" | "profile" | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<ProfileOrder | null>(null);
   const [mounted, setMounted] = useState(false); 
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState(user);
@@ -34,7 +72,7 @@ export function ProfileClient({ user }: { user: any }) {
 
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState({ street: "", city: "", state: "", pincode: "" });
-  const [savedAddresses, setSavedAddresses] = useState(user.addresses || []);
+  const [savedAddresses, setSavedAddresses] = useState<ProfileAddress[]>(user.addresses || []);
 
   useEffect(() => {
     setMounted(true);
@@ -50,7 +88,7 @@ export function ProfileClient({ user }: { user: any }) {
     }
   }, [userData]);
 
-  const openInvoice = (order: any) => {
+  const openInvoice = (order: ProfileOrder) => {
     setSelectedOrder(order);
     setActiveSheet("invoice");
   };
@@ -76,7 +114,7 @@ export function ProfileClient({ user }: { user: any }) {
         toast.success("Profile updated successfully");
         setActiveSheet(null);
       } else throw new Error();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update profile");
     } finally {
       setIsLoading(false);
@@ -100,14 +138,14 @@ export function ProfileClient({ user }: { user: any }) {
           setIsAddingAddress(false);
           toast.success("Address saved successfully");
         } else throw new Error();
-      } catch(err) {
+      } catch {
         toast.error("Failed to save address");
       } finally {
         setIsLoading(false);
       }
     }
   };
-  
+
   const handleDeleteAddress = async (addressId: string) => {
     setIsLoading(true);
     try {
@@ -117,10 +155,10 @@ export function ProfileClient({ user }: { user: any }) {
         body: JSON.stringify({ action: "delete_address", addressId })
       });
       if (res.ok) {
-        setSavedAddresses(savedAddresses.filter((a: any) => a.id !== addressId));
+        setSavedAddresses(savedAddresses.filter((a) => a.id !== addressId));
         toast.success("Address removed");
       } else throw new Error();
-    } catch(err) {
+    } catch {
       toast.error("Failed to delete address");
     } finally {
       setIsLoading(false);
@@ -141,7 +179,7 @@ export function ProfileClient({ user }: { user: any }) {
         })
       });
       toast.success("Preferences updated");
-    } catch(err) {
+    } catch {
       toast.error("Failed to update preferences");
     }
   };
@@ -223,7 +261,7 @@ export function ProfileClient({ user }: { user: any }) {
                 </div>
               ) : (
                 <div className="space-y-8">
-                  {user.orders.map((order: any) => (
+                  {user.orders.map((order) => (
                     <div key={order.id} className="group border border-zinc-100 rounded-[2rem] p-6 md:p-8 hover:shadow-xl hover:border-zinc-200 transition-all duration-500 bg-white">
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-zinc-50 pb-6">
                         <div className="flex items-center gap-4">
@@ -246,10 +284,12 @@ export function ProfileClient({ user }: { user: any }) {
                       </div>
 
                       <div className="space-y-4">
-                        {order.orderItems.map((item: any) => (
+                        {order.orderItems.map((item) => (
                           <div key={item.id} className="flex items-center gap-4 p-3 hover:bg-zinc-50 rounded-2xl transition-colors">
-                            <div className="h-16 w-16 bg-[#F9F6F0] rounded-xl overflow-hidden shrink-0 border border-zinc-100">
-                              <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-cover" />
+                            <div className="relative h-16 w-16 bg-[#F9F6F0] rounded-xl overflow-hidden shrink-0 border border-zinc-100">
+                              {item.product.imageUrl && (
+                                <Image src={item.product.imageUrl} alt={item.product.name} fill sizes="64px" className="object-cover" />
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-serif text-sm md:text-base font-bold text-zinc-900 truncate">{item.product.name}</p>
@@ -306,7 +346,7 @@ export function ProfileClient({ user }: { user: any }) {
                 </div>
                 <div className="space-y-4">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Items Billed</p>
-                  {selectedOrder.orderItems.map((item: any) => (
+                  {selectedOrder.orderItems.map((item) => (
                     <div key={item.id} className="flex justify-between items-center">
                       <p className="text-sm font-bold text-zinc-700">{item.product.name} <span className="text-zinc-400 text-xs ml-2">x{item.quantity}</span></p>
                       <p className="text-sm font-bold text-zinc-900">₹{Number(item.price).toLocaleString()}</p>
@@ -396,7 +436,7 @@ export function ProfileClient({ user }: { user: any }) {
           
           {!isAddingAddress ? (
             <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
-              {savedAddresses.map((addr: any) => (
+              {savedAddresses.map((addr) => (
                 <div key={addr.id} className={cn("border rounded-2xl p-5 relative", addr.isDefault ? "border-[#50540b] bg-[#F9F6F0]/30" : "border-zinc-200 bg-white")}>
                   <button disabled={isLoading} onClick={() => handleDeleteAddress(addr.id)} className="absolute bottom-4 right-4 p-2 text-zinc-400 hover:text-red-500 transition-colors bg-white rounded-full border border-zinc-100 hover:border-red-100 shadow-sm">
                     <Trash2 className="h-4 w-4" />

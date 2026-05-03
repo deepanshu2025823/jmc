@@ -1,27 +1,26 @@
 "use client";
 
-import { useCartStore } from "@/hooks/use-cart-store";
+import { useCartStore, type ProductInput } from "@/hooks/use-cart-store";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export function AddToWishlistButton({ product }: { product: any }) {
-  const store = useCartStore();
-  const wishlist = store?.wishlist || [];
-  const addToWishlist = store?.addToWishlist;
-  const setWishlistOpen = store?.setWishlistOpen;
+export function AddToWishlistButton({ product }: { product: ProductInput }) {
+  const wishlist = useCartStore((s) => s.wishlist);
+  const addToWishlist = useCartStore((s) => s.addToWishlist);
+  const setWishlistOpen = useCartStore((s) => s.setWishlistOpen);
 
-  const isInWishlist = wishlist.some((item: any) => item.id === product.id);
+  const isInWishlist = wishlist.some((item) => item.id === product.id);
 
   const handleWishlist = () => {
     if (isInWishlist) {
       toast.info("Item is already in your wishlist.");
-      setWishlistOpen(true); 
+      setWishlistOpen(true);
     } else {
       addToWishlist(product);
       toast.success("Added to your Rituals Wishlist");
-      setWishlistOpen(true); 
+      setWishlistOpen(true);
     }
   };
 

@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { SalesChart } from "@/components/sales-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, TrendingUp, Package, Users } from "lucide-react";
+import { BarChart3, TrendingUp } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,7 @@ export default async function AnalyticsPage() {
     orderBy: { createdAt: "asc" }
   });
 
-  const salesData = orders.reduce((acc: any, order: { totalAmount: any; createdAt: Date }) => {
+  const salesData = orders.reduce<Record<string, number>>((acc, order) => {
     const date = new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
     if (!acc[date]) acc[date] = 0;
     acc[date] += Number(order.totalAmount);
@@ -42,7 +42,7 @@ export default async function AnalyticsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Business Analytics</h1>
-        <p className="text-zinc-500 mt-2">Deep dive into your store's performance and sales trends.</p>
+        <p className="text-zinc-500 mt-2">Deep dive into your store&apos;s performance and sales trends.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

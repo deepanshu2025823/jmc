@@ -1,18 +1,56 @@
 "use client";
 
-import { useCartStore } from "@/hooks/use-cart-store";
+import Image from "next/image";
+import { useCartStore, type Product } from "@/hooks/use-cart-store";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShieldCheck, ArrowLeft, Truck, PackageCheck, AlertCircle, CreditCard, Loader2, MapPin } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useOrderActions } from "@/actions/order";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+export interface SavedAddress {
+  id: string;
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault: boolean;
+}
+
+interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  image?: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill: { name: string; email: string; contact: string };
+  theme: { color: string };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+}
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
 const loadRazorpayScript = () => {
-  return new Promise((resolve) => {
+  return new Promise<boolean>((resolve) => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.onload = () => resolve(true);
@@ -21,52 +59,46 @@ const loadRazorpayScript = () => {
   });
 };
 
-export default function CheckoutClient({ 
-  isCodEnabled, 
-  isRazorpayEnabled, 
+export default function CheckoutClient({
+  isCodEnabled,
+  isRazorpayEnabled,
   razorpayKeyId,
   userEmail,
   userName,
   userPhone,
   savedAddresses
-}: { 
+}: {
   isCodEnabled: boolean;
   isRazorpayEnabled: boolean;
   razorpayKeyId: string;
   userEmail: string;
   userName: string;
   userPhone: string;
-  savedAddresses: any[];
+  savedAddresses: SavedAddress[];
 }) {
-  const { cart, appliedCoupon } = useCartStore() as any;
-  const { placeCODOrder } = useOrderActions(); 
+  const cart = useCartStore((s) => s.cart);
+  const appliedCoupon = useCartStore((s) => s.appliedCoupon);
+  const { placeCODOrder } = useOrderActions();
   const [loading, setLoading] = useState(false);
-  
+
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">(
     isCodEnabled ? "COD" : (isRazorpayEnabled ? "ONLINE" : "COD")
   );
 
+  const defaultAddr = savedAddresses?.length
+    ? (savedAddresses.find((a) => a.isDefault) ?? savedAddresses[0])
+    : null;
+
   const [firstName, setFirstName] = useState(userName.split(' ')[0] || "");
   const [lastName, setLastName] = useState(userName.split(' ').slice(1).join(' ') || "");
   const [phone, setPhone] = useState(userPhone || "");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [pincode, setPincode] = useState("");
-  const [selectedAddressId, setSelectedAddressId] = useState<string>("new");
+  const [address, setAddress] = useState(defaultAddr?.street ?? "");
+  const [city, setCity] = useState(defaultAddr?.city ?? "");
+  const [state, setState] = useState(defaultAddr?.state ?? "");
+  const [pincode, setPincode] = useState(defaultAddr?.pincode ?? "");
+  const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddr?.id ?? "new");
 
-  useEffect(() => {
-    if (savedAddresses && savedAddresses.length > 0) {
-      const defaultAddr = savedAddresses.find((a: any) => a.isDefault) || savedAddresses[0];
-      setSelectedAddressId(defaultAddr.id);
-      setAddress(defaultAddr.street);
-      setCity(defaultAddr.city);
-      setState(defaultAddr.state);
-      setPincode(defaultAddr.pincode);
-    }
-  }, [savedAddresses]);
-
-  const subtotal = cart.reduce((acc: number, item: any) => acc + (Number(item.price) * (item.quantity || 1)), 0);
+  const subtotal = cart.reduce((acc, item) => acc + (Number(item.price) * (item.quantity || 1)), 0);
   let discount = 0;
   if (appliedCoupon) {
     discount = appliedCoupon.type === "FIXED" ? appliedCoupon.discount : (subtotal * appliedCoupon.discount) / 100;
@@ -103,21 +135,26 @@ export default function CheckoutClient({
         name: "JMC Luxury Skincare",
         description: "Premium Ritual Purchase",
         image: "https://your-logo-url.com/logo.png", 
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayResponse) {
           toast.success(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
-          await placeCODOrder({ ...data, paymentId: response.razorpay_payment_id, isPaid: true }); 
+          await placeCODOrder({ ...data, paymentId: response.razorpay_payment_id, isPaid: true });
         },
         prefill: {
           name: `${data.firstName} ${data.lastName}` || userName,
           email: userEmail,
-          contact: data.phone || userPhone
+          contact: String(data.phone ?? "") || userPhone,
         },
         theme: {
-          color: "#50540b", 
+          color: "#50540b",
         },
       };
 
-      const paymentObject = new (window as any).Razorpay(options);
+      if (!window.Razorpay) {
+        toast.error("Razorpay SDK not available.");
+        setLoading(false);
+        return;
+      }
+      const paymentObject = new window.Razorpay(options);
       paymentObject.open();
       setLoading(false);
     }
@@ -150,7 +187,7 @@ export default function CheckoutClient({
                 <div className="space-y-3 mb-8 bg-zinc-50/50 p-4 rounded-3xl border border-zinc-100">
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Select Saved Address</label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {savedAddresses.map((addr: any) => (
+                    {savedAddresses.map((addr) => (
                       <div 
                         key={addr.id}
                         onClick={() => {
@@ -290,10 +327,10 @@ export default function CheckoutClient({
               </div>
               
               <div className="max-h-[300px] overflow-y-auto space-y-5 mb-8 pr-2 custom-scrollbar">
-                {cart.map((item: any) => (
+                {cart.map((item: Product) => (
                   <div key={item.id} className="flex gap-4 group">
-                    <div className="h-16 w-14 rounded-xl overflow-hidden bg-[#F9F6F0] shrink-0">
-                       <img src={item.imageUrl} className="h-full w-full object-cover" alt="" />
+                    <div className="relative h-16 w-14 rounded-xl overflow-hidden bg-[#F9F6F0] shrink-0">
+                       {item.imageUrl && <Image src={item.imageUrl} fill sizes="56px" className="object-cover" alt={item.name} />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-serif text-sm font-bold text-zinc-900 truncate">{item.name}</p>
@@ -309,7 +346,7 @@ export default function CheckoutClient({
                   <span>Subtotal</span>
                   <span className="text-zinc-900">₹{subtotal.toLocaleString()}</span>
                 </div>
-                {discount > 0 && (
+                {discount > 0 && appliedCoupon && (
                   <div className="flex justify-between text-emerald-600 font-bold uppercase text-[10px] tracking-widest">
                     <span>Discount ({appliedCoupon.code})</span>
                     <span>- ₹{discount.toLocaleString()}</span>

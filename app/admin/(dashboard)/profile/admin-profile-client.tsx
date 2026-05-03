@@ -8,7 +8,15 @@ import { User, Mail, ShieldCheck, Calendar, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { updateAdminProfile } from "@/actions/admin";
 
-export function AdminProfileClient({ user }: { user: any }) {
+export interface AdminProfileUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: string | Date;
+}
+
+export function AdminProfileClient({ user }: { user: AdminProfileUser }) {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email); 
   const [isPending, startTransition] = useTransition();

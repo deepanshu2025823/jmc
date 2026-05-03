@@ -1,13 +1,13 @@
 // components/buy-now-button.tsx
 "use client";
 
-import { useCartStore } from "@/hooks/use-cart-store";
+import { useCartStore, type ProductInput } from "@/hooks/use-cart-store";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function BuyNowButton({ product, isUserLoggedIn }: { product: any, isUserLoggedIn: boolean }) {
+export function BuyNowButton({ product, isUserLoggedIn }: { product: ProductInput, isUserLoggedIn: boolean }) {
   const addToCart = useCartStore((state) => state.addToCart);
   const router = useRouter();
   const [loading, setLoading] = useState(false);

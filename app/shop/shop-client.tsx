@@ -8,9 +8,12 @@ import { Star, Sparkles, ShoppingCart, Heart, Filter, X } from "lucide-react";
 import { useCartStore } from "@/hooks/use-cart-store";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import type { StorefrontProduct } from "@/types/storefront";
 
-export function ShopClient({ initialProducts }: { initialProducts: any[] }) {
-  const { addToCart, addToWishlist, wishlist } = useCartStore() as any;
+export function ShopClient({ initialProducts }: { initialProducts: StorefrontProduct[] }) {
+  const addToCart = useCartStore((s) => s.addToCart);
+  const addToWishlist = useCartStore((s) => s.addToWishlist);
+  const wishlist = useCartStore((s) => s.wishlist);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -81,7 +84,7 @@ export function ShopClient({ initialProducts }: { initialProducts: any[] }) {
             {filteredProducts.map((product) => {
               const images = Array.isArray(product.images) ? product.images : [];
               const secondaryImage = images.length > 1 ? images[1] : product.imageUrl;
-              const isWishlisted = wishlist?.some((item: any) => item.id === product.id);
+              const isWishlisted = wishlist?.some((item) => item.id === product.id);
 
               return (
                 <div key={product.id} className="group flex flex-col space-y-4">
@@ -111,7 +114,7 @@ export function ShopClient({ initialProducts }: { initialProducts: any[] }) {
                     <button 
                       onClick={(e) => {
                         e.preventDefault(); e.stopPropagation();
-                        addToWishlist({ id: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl });
+                        addToWishlist({ id: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl ?? "" });
                       }}
                       className="absolute top-3 right-3 md:top-4 md:right-4 p-2 bg-white/80 backdrop-blur-md rounded-full transition-all shadow-sm z-30"
                     >
@@ -123,7 +126,7 @@ export function ShopClient({ initialProducts }: { initialProducts: any[] }) {
                         disabled={product.stock === 0}
                         onClick={(e) => {
                           e.preventDefault(); e.stopPropagation();
-                          addToCart({ id: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl });
+                          addToCart({ id: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl ?? "" });
                         }}
                         className="w-full bg-zinc-900 text-white hover:bg-[#50540b] rounded-full font-bold h-10 md:h-12 shadow-2xl transition-colors border-none"
                        >

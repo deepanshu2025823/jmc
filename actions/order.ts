@@ -4,18 +4,20 @@ import { useCartStore } from "@/hooks/use-cart-store";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
+export type OrderFormData = Record<string, FormDataEntryValue | boolean | string>;
+
 export function useOrderActions() {
   const router = useRouter();
-  const { cart, appliedCoupon, clearCart } = useCartStore(); 
+  const { cart, appliedCoupon, clearCart } = useCartStore();
 
-  const placeCODOrder = async (formData: any) => {
+  const placeCODOrder = async (formData: OrderFormData) => {
     try {
-      const subtotal = cart.reduce((acc: number, item: any) => acc + (Number(item.price) * item.quantity), 0);
-      
+      const subtotal = cart.reduce((acc, item) => acc + (Number(item.price) * item.quantity), 0);
+
       let discount = 0;
       if (appliedCoupon) {
-        discount = appliedCoupon.type === "FIXED" 
-          ? appliedCoupon.discount 
+        discount = appliedCoupon.type === "FIXED"
+          ? appliedCoupon.discount
           : (subtotal * appliedCoupon.discount) / 100;
       }
 
@@ -36,13 +38,14 @@ export function useOrderActions() {
 
       if (response.ok) {
         toast.success("Order Placed Successfully!");
-        clearCart(); 
+        clearCart();
         router.push(`/order-success?id=${data.id}`);
       } else {
         throw new Error(data.error || "Failed to place order");
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to place order";
+      toast.error(message);
     }
   };
 

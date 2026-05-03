@@ -57,7 +57,13 @@ export async function subscribeToNewsletter(formData: FormData) {
   }
 }
 
-export async function sendQuizResults(userData: { name: string, email: string }, aiResult: any) {
+export interface QuizAiResult {
+  skinType: string;
+  routine: string[];
+  expertAdvice: string;
+}
+
+export async function sendQuizResults(userData: { name: string, email: string }, aiResult: QuizAiResult) {
   const emailHtml = `
     <div style="font-family: serif; padding: 40px; background-color: #F9F6F0; color: #18181b; border-radius: 20px;">
       <h1 style="color: #B59461; text-align: center;">JMC Luxury AI Ritual</h1>
@@ -66,7 +72,7 @@ export async function sendQuizResults(userData: { name: string, email: string },
       <div style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #B59461;">
         <h3 style="color: #B59461;">Your Recommended Routine:</h3>
         <ul>
-          ${aiResult.routine.map((step: string) => `<li>${step}</li>`).join('')}
+          ${aiResult.routine.map((step) => `<li>${step}</li>`).join('')}
         </ul>
         <p style="font-style: italic; color: #666; margin-top: 15px;">"${aiResult.expertAdvice}"</p>
       </div>
@@ -89,7 +95,7 @@ export async function sendQuizResults(userData: { name: string, email: string },
     });
 
     return { success: true };
-  } catch (error) {
+  } catch {
     return { error: "Email delivery failed" };
   }
 }

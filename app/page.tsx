@@ -5,9 +5,6 @@ import { Bestsellers } from "@/components/bestsellers";
 import { QuizBanner } from "@/components/quiz-banner";
 import { Newsletter } from "@/components/newsletter";
 import { Reviews } from "@/components/reviews";
-import { Sparkles, ShoppingBag, User } from "lucide-react";
-import Link from "next/link";
-
 export default function HomePage() {
   return (
     <main className="min-h-screen">

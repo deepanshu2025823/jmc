@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { OrderStatus } from "@prisma/client";
 
 export async function updateAdminProfile(userId: string, newName: string, newEmail: string) {
   try {
@@ -59,7 +60,7 @@ export async function updateRazorpaySettings(data: { isEnabled: boolean, keyId: 
   }
 }
 
-export async function updateOrderStatus(orderId: string, newStatus: any) {
+export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
   try {
     await prisma.order.update({
       where: { id: orderId },
@@ -90,11 +91,13 @@ export async function clearAllOrders() {
   }
 }
 
-export async function toggleCodSetting(currentStatus: boolean) {
+export async function toggleCodSetting(
+  currentStatus: boolean
+): Promise<{ success: true; isCodEnabled: boolean } | { success: false; isCodEnabled?: undefined }> {
   try {
     const settings = await prisma.storeSettings.findFirst();
-    let newStatus;
-    
+    let newStatus: boolean;
+
     if (settings) {
       const updated = await prisma.storeSettings.update({
         where: { id: settings.id },
@@ -107,10 +110,10 @@ export async function toggleCodSetting(currentStatus: boolean) {
       });
       newStatus = created.isCodEnabled;
     }
-    
+
     revalidatePath("/admin");
-    revalidatePath("/checkout"); 
-    
+    revalidatePath("/checkout");
+
     return { success: true, isCodEnabled: newStatus };
   } catch (error) {
     console.error("COD Toggle Error:", error);

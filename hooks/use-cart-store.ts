@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-interface Product {
+export interface Product {
   id: string;
   name: string;
   price: number;
@@ -8,21 +8,29 @@ interface Product {
   quantity: number;
 }
 
+export type ProductInput = Omit<Product, 'quantity'>;
+
+export interface AppliedCoupon {
+  code: string;
+  discount: number;
+  type: string;
+}
+
 interface CartStore {
-  removeFromWishlist: any;
+  removeFromWishlist: (id: string) => void;
   wishlist: Product[];
-  addToWishlist: (product: Product) => void;
+  addToWishlist: (product: ProductInput) => void;
   cart: Product[];
-  appliedCoupon: { code: string; discount: number; type: string } | null;
-  addToCart: (product: any) => void;
+  appliedCoupon: AppliedCoupon | null;
+  addToCart: (product: ProductInput) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, type: 'plus' | 'minus') => void;
-  setCoupon: (coupon: { code: string; discount: number; type: string } | null) => void;
-  clearCart: () => void; 
-  
+  setCoupon: (coupon: AppliedCoupon | null) => void;
+  clearCart: () => void;
+
   isWishlistOpen: boolean;
   setWishlistOpen: (isOpen: boolean) => void;
-  
+
   isCartOpen: boolean;
   setCartOpen: (isOpen: boolean) => void;
 }
@@ -31,21 +39,23 @@ export const useCartStore = create<CartStore>((set) => ({
   cart: [],
   wishlist: [],
   appliedCoupon: null,
-  
-  isWishlistOpen: false, 
-  isCartOpen: false, // Default cart state bandh rahegi
 
-  addToWishlist: (product: any) => set((state) => ({ wishlist: [...state.wishlist, product] })),
-  
-  removeFromWishlist: (id: string) => set((state) => ({
-    wishlist: state.wishlist.filter((item: any) => item.id !== id)
+  isWishlistOpen: false,
+  isCartOpen: false,
+
+  addToWishlist: (product) => set((state) => ({
+    wishlist: [...state.wishlist, { ...product, quantity: 1 }],
   })),
-  
+
+  removeFromWishlist: (id) => set((state) => ({
+    wishlist: state.wishlist.filter((item) => item.id !== id),
+  })),
+
   addToCart: (product) => set((state) => {
     const existing = state.cart.find(item => item.id === product.id);
     if (existing) {
       return {
-        cart: state.cart.map(item => 
+        cart: state.cart.map(item =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         ),
       };
@@ -54,7 +64,7 @@ export const useCartStore = create<CartStore>((set) => ({
   }),
 
   removeFromCart: (id) => set((state) => ({
-    cart: state.cart.filter(item => item.id !== id)
+    cart: state.cart.filter(item => item.id !== id),
   })),
 
   updateQuantity: (id, type) => set((state) => ({
@@ -64,13 +74,13 @@ export const useCartStore = create<CartStore>((set) => ({
         return { ...item, quantity: Math.max(1, newQty) };
       }
       return item;
-    })
+    }),
   })),
 
   setCoupon: (coupon) => set({ appliedCoupon: coupon }),
-  
-  clearCart: () => set({ cart: [], appliedCoupon: null }), 
+
+  clearCart: () => set({ cart: [], appliedCoupon: null }),
 
   setWishlistOpen: (isOpen) => set({ isWishlistOpen: isOpen }),
-  setCartOpen: (isOpen) => set({ isCartOpen: isOpen }), 
+  setCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
 }));

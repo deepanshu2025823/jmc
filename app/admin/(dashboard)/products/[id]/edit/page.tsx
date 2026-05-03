@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, use } from "react"; 
-import { updateProduct, deleteProductImage } from "@/actions/product"; 
+import { useEffect, useRef, useState, use } from "react";
+import { updateProduct, deleteProductImage } from "@/actions/product";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,13 +10,26 @@ import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 
+interface AdminProduct {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  category: string | null;
+  price: number | string;
+  stock: number;
+  imageUrl: string | null;
+  images: string[] | null;
+}
+
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const productId = resolvedParams.id;
 
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<AdminProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const galleryIdRef = useRef(0);
   const [galleryInputs, setGalleryInputs] = useState<number[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
@@ -35,8 +48,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         } else {
           toast.error("Failed to load product details.");
         }
-      } catch (error) {
-        console.error("Error fetching product:", error);
+      } catch (err) {
+        console.error("Error fetching product:", err);
       } finally {
         setLoading(false);
       }
@@ -71,7 +84,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     }
   };
 
-  const addGalleryInput = () => setGalleryInputs([...galleryInputs, Date.now()]);
+  const addGalleryInput = () => setGalleryInputs([...galleryInputs, galleryIdRef.current++]);
   const removeGalleryInput = (idToRemove: number) => {
     setGalleryInputs(galleryInputs.filter((id) => id !== idToRemove));
   };
@@ -82,19 +95,19 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     setIsDeleting(imageUrl);
     try {
       const result = await deleteProductImage(productId, imageUrl, isMainImage);
-      
-      if (result.success) {
+
+      if (result.success && product) {
         toast.success("Image deleted successfully");
         if (isMainImage) {
           setProduct({ ...product, imageUrl: null });
         } else {
-          const newImages = product.images.filter((img: string) => img !== imageUrl);
+          const newImages = (product.images ?? []).filter((img) => img !== imageUrl);
           setProduct({ ...product, images: newImages });
         }
       } else {
         toast.error("Failed to delete image.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong.");
     } finally {
       setIsDeleting(null);
@@ -200,7 +213,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 <Image src={product.imageUrl} alt="Main" width={80} height={80} className="rounded-lg object-cover h-20 w-20 bg-zinc-50" />
                 <div className="flex-1 w-full text-center sm:text-left">
                   <p className="text-xs font-bold text-zinc-900">Current Main Image</p>
-                  <Button type="button" variant="destructive" size="sm" className="mt-3 h-8 w-full sm:w-auto rounded-lg text-xs" onClick={() => handleDeleteImage(product.imageUrl, true)} disabled={isDeleting === product.imageUrl}>
+                  <Button type="button" variant="destructive" size="sm" className="mt-3 h-8 w-full sm:w-auto rounded-lg text-xs" onClick={() => product.imageUrl && handleDeleteImage(product.imageUrl, true)} disabled={isDeleting === product.imageUrl}>
                     {isDeleting === product.imageUrl ? <Loader2 className="h-3 w-3 animate-spin mr-1"/> : <Trash2 className="h-3 w-3 mr-1" />} Delete Image
                   </Button>
                 </div>
@@ -222,7 +235,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             
             {product.images && product.images.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                {product.images.map((imgUrl: string, idx: number) => (
+                {product.images.map((imgUrl, idx) => (
                   <div key={idx} className="relative group border border-zinc-200 rounded-xl bg-white p-2 shadow-sm">
                     <Image src={imgUrl} alt={`Gallery ${idx}`} width={150} height={150} className="rounded-lg object-cover aspect-square w-full bg-zinc-50" />
                     <Button 

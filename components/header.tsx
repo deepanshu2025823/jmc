@@ -1,63 +1,53 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { usePathname } from "next/navigation"; // <-- NAYA IMPORT BOTTOM NAV KE LIYE
-import { 
-  Search, ShoppingBag, User, Heart, Menu, Sparkles, 
+import { usePathname } from "next/navigation";
+import {
+  Search, ShoppingBag, User, Heart, Menu,
   Trash2, ShoppingCart, Loader2, LogOut, LayoutDashboard,
-  Home, LayoutGrid 
+  Home, LayoutGrid
 } from "lucide-react";
-import { 
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription 
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { useCartStore } from "@/hooks/use-cart-store"; 
-import { toast } from "sonner"; 
+import { useCartStore, type Product } from "@/hooks/use-cart-store";
+import { toast } from "sonner";
+import type { StorefrontProduct } from "@/types/storefront";
 
-interface ProductItem {
-  id: string;
-  name: string;
-  price: number | string;
-  imageUrl: string;
-  quantity?: number;
-}
+const subscribe = () => () => {};
+const useIsClient = () =>
+  useSyncExternalStore(subscribe, () => true, () => false);
 
 export function Header() {
   const { data: session } = useSession();
-  const pathname = usePathname(); // <-- CURRENT PATH CHECK KARNE KE LIYE
+  const pathname = usePathname();
+  const mounted = useIsClient();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<StorefrontProduct[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [mounted, setMounted] = useState(false); 
-  
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement>(null);
 
-  const store = useCartStore() as any;
-  const cart = store?.cart || [];
-  const wishlist = store?.wishlist || [];
-  
-  const isCartOpen = store?.isCartOpen || false;
-  const setCartOpen = store?.setCartOpen;
-  
-  const isWishlistOpen = store?.isWishlistOpen || false;
-  const setWishlistOpen = store?.setWishlistOpen;
-
-  const addToCart = store?.addToCart;
-  const removeFromCart = store?.removeFromCart;
-  const removeFromWishlist = store?.removeFromWishlist;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const cart = useCartStore((s) => s.cart);
+  const wishlist = useCartStore((s) => s.wishlist);
+  const isCartOpen = useCartStore((s) => s.isCartOpen);
+  const setCartOpen = useCartStore((s) => s.setCartOpen);
+  const isWishlistOpen = useCartStore((s) => s.isWishlistOpen);
+  const setWishlistOpen = useCartStore((s) => s.setWishlistOpen);
+  const addToCart = useCartStore((s) => s.addToCart);
+  const removeFromCart = useCartStore((s) => s.removeFromCart);
+  const removeFromWishlist = useCartStore((s) => s.removeFromWishlist);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -96,17 +86,13 @@ export function Header() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  if (!mounted) return null;
-
-  const subtotal = cart.reduce((acc: number, item: any) => 
+  const subtotal = cart.reduce((acc, item) =>
     acc + (Number(item.price) * (item.quantity || 1)), 0);
 
-  const moveWishlistToCart = (item: ProductItem) => {
-    if (addToCart && removeFromWishlist) {
-      addToCart(item);
-      removeFromWishlist(item.id);
-      toast.success("Moved to Shopping Bag");
-    }
+  const moveWishlistToCart = (item: Product) => {
+    addToCart(item);
+    removeFromWishlist(item.id);
+    toast.success("Moved to Shopping Bag");
   };
 
   return (
@@ -133,7 +119,7 @@ export function Header() {
               
               <SheetHeader className="pb-6 border-b border-zinc-100 mt-4 text-left">
                 <Link href="/" className="group flex items-center gap-2 relative z-[101]">
-                  <img src="/logo.png" className="h-20 w-20" alt="JMC" />
+                  <Image src="/logo.png" width={80} height={80} className="h-20 w-20" alt="JMC" />
                 </Link>
               </SheetHeader>
 
@@ -178,7 +164,7 @@ export function Header() {
           </nav>
 
           <Link href="/" className="group flex items-center gap-2 relative z-[101]">
-            <img src="/logo.png" className="h-12 w-12 md:h-20 md:w-20" alt="JMC" />
+            <Image src="/logo.png" width={80} height={80} className="h-12 w-12 md:h-20 md:w-20" alt="JMC" />
           </Link>
 
           <div className="flex items-center justify-end gap-2 md:gap-5 flex-1">
@@ -205,7 +191,9 @@ export function Header() {
                       onClick={() => setSearchQuery("")}
                       className="flex items-center gap-4 p-4 hover:bg-zinc-50 transition-colors"
                     >
-                      <img src={product.imageUrl} className="h-12 w-12 rounded-lg object-cover" alt="" />
+                      {product.imageUrl && (
+                        <Image src={product.imageUrl} width={48} height={48} className="h-12 w-12 rounded-lg object-cover" alt={product.name} />
+                      )}
                       <div>
                         <p className="text-sm font-bold text-zinc-900">{product.name}</p>
                         <p className="text-[10px] text-[#50540b] font-bold">₹{Number(product.price).toLocaleString()}</p>
@@ -236,13 +224,13 @@ export function Header() {
                         <p className="text-[10px] text-zinc-500 truncate font-medium">{session.user?.email}</p>
                       </div>
                       
-                      <Link 
-                        href={(session.user as any)?.role === "ADMIN" ? "/admin" : "/profile"} 
-                        onClick={() => setIsProfileOpen(false)} 
+                      <Link
+                        href={session.user?.role === "ADMIN" ? "/admin" : "/profile"}
+                        onClick={() => setIsProfileOpen(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
                       >
                         <LayoutDashboard className="h-4 w-4" />
-                        {(session.user as any)?.role === "ADMIN" ? "Command Center" : "My Account"}
+                        {session.user?.role === "ADMIN" ? "Command Center" : "My Account"}
                       </Link>
                       
                       <button 
@@ -262,8 +250,8 @@ export function Header() {
               )}
               
               <button onClick={() => setWishlistOpen(true)} className="p-2 relative group transition-all">
-                <Heart className={cn("h-5 w-5 transition-colors", wishlist.length > 0 ? "fill-[#50540b] text-[#50540b]" : "text-zinc-700")} />
-                {wishlist.length > 0 && (
+                <Heart className={cn("h-5 w-5 transition-colors", mounted && wishlist.length > 0 ? "fill-[#50540b] text-[#50540b]" : "text-zinc-700")} />
+                {mounted && wishlist.length > 0 && (
                   <span className="absolute top-1 right-1 bg-[#50540b] text-white text-[8px] h-4 w-4 rounded-full flex items-center justify-center font-bold shadow-lg">
                     {wishlist.length}
                   </span>
@@ -272,9 +260,11 @@ export function Header() {
 
               <button onClick={() => setCartOpen(true)} className="p-2 relative group transition-all">
                 <ShoppingBag className="h-5 w-5 text-zinc-900" />
-                <span className="absolute -top-1 -right-1 bg-zinc-900 text-white text-[9px] h-4 w-4 rounded-full flex items-center justify-center font-bold shadow-lg">
-                  {cart.length}
-                </span>
+                {mounted && (
+                  <span className="absolute -top-1 -right-1 bg-zinc-900 text-white text-[9px] h-4 w-4 rounded-full flex items-center justify-center font-bold shadow-lg">
+                    {cart.length}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -297,14 +287,18 @@ export function Header() {
                   <p className="font-serif text-zinc-400">Your bag is empty</p>
                 </div>
               ) : (
-                cart.map((item: ProductItem) => (
+                cart.map((item) => (
                   <div key={item.id} className="flex gap-4 border-b pb-6 group relative">
-                    <img src={item.imageUrl} alt={item.name} className="h-24 w-20 rounded-xl object-cover bg-zinc-50 border border-zinc-100" />
+                    <div className="relative h-24 w-20 shrink-0">
+                      {item.imageUrl && (
+                        <Image src={item.imageUrl} alt={item.name} fill sizes="80px" className="rounded-xl object-cover bg-zinc-50 border border-zinc-100" />
+                      )}
+                    </div>
                     <div className="flex-1 py-1">
                       <div className="flex justify-between items-start">
                         <p className="font-serif text-md font-bold text-zinc-900 leading-tight">{item.name}</p>
-                        <button 
-                          onClick={() => removeFromCart && removeFromCart(item.id)} 
+                        <button
+                          onClick={() => removeFromCart(item.id)}
                           className="text-zinc-300 hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -352,21 +346,25 @@ export function Header() {
               {wishlist.length === 0 ? (
                  <div className="h-full flex flex-col items-center justify-center space-y-4 text-zinc-300 italic">No saved items yet.</div>
               ) : (
-                wishlist.map((item: ProductItem) => (
+                wishlist.map((item) => (
                   <div key={item.id} className="flex items-center gap-4 border-b pb-6 animate-in fade-in duration-300">
-                    <img src={item.imageUrl} className="h-20 w-16 rounded-xl object-cover border border-zinc-100" alt={item.name} />
+                    <div className="relative h-20 w-16 shrink-0">
+                      {item.imageUrl && (
+                        <Image src={item.imageUrl} fill sizes="64px" className="rounded-xl object-cover border border-zinc-100" alt={item.name} />
+                      )}
+                    </div>
                     <div className="flex-1">
                       <p className="font-serif text-sm font-bold text-zinc-900 leading-tight">{item.name}</p>
                       <p className="text-[#50540b] text-xs font-bold mt-1">₹{Number(item.price).toLocaleString()}</p>
-                      <button 
+                      <button
                         onClick={() => moveWishlistToCart(item)}
                         className="flex items-center gap-1.5 mt-2 text-[10px] font-black uppercase text-zinc-900 border-b border-zinc-900 pb-0.5 hover:text-[#50540b] hover:border-[#50540b] transition-all"
                       >
                         <ShoppingCart className="h-3 w-3" /> Move to Bag
                       </button>
                     </div>
-                    <button 
-                      onClick={() => removeFromWishlist && removeFromWishlist(item.id)} 
+                    <button
+                      onClick={() => removeFromWishlist(item.id)}
                       className="p-2 text-zinc-300 hover:text-red-500 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />

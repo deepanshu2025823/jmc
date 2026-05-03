@@ -49,8 +49,9 @@ export default function CartPage() {
       });
       toast.success("Coupon applied successfully!");
       setCouponCode("");
-    } catch (err: any) {
-      toast.error(err.message || "Something went wrong");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

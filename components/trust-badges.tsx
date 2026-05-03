@@ -1,4 +1,4 @@
-import { Sparkles, ShieldCheck, Truck, RotateCcw, Leaf } from "lucide-react";
+import { ShieldCheck, Truck, RotateCcw, Leaf } from "lucide-react";
 
 const badges = [
   {

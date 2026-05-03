@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createProduct } from "@/actions/product";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,8 @@ export default function NewProductPage() {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [saving, setSaving] = useState(false);
-  const [galleryInputs, setGalleryInputs] = useState<number[]>([Date.now()]); 
+  const galleryIdRef = useRef(1);
+  const [galleryInputs, setGalleryInputs] = useState<number[]>([0]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
@@ -40,7 +41,7 @@ export default function NewProductPage() {
     }
   };
 
-  const addGalleryInput = () => setGalleryInputs([...galleryInputs, Date.now()]);
+  const addGalleryInput = () => setGalleryInputs([...galleryInputs, galleryIdRef.current++]);
   const removeGalleryInput = (idToRemove: number) => {
     setGalleryInputs(galleryInputs.filter((id) => id !== idToRemove));
   };
@@ -153,7 +154,7 @@ export default function NewProductPage() {
             </div>
             
             <div className="space-y-3">
-              {galleryInputs.map((id, index) => (
+              {galleryInputs.map((id) => (
                 <div key={id} className="flex flex-row items-center gap-3">
                   <Input 
                     name="galleryImages" type="file" 

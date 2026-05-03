@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold">Forgot Password?</h1>
-          <p className="text-zinc-500 text-sm mt-1">No worries, we'll send you reset instructions.</p>
+          <p className="text-zinc-500 text-sm mt-1">No worries, we&apos;ll send you reset instructions.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

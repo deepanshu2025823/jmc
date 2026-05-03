@@ -9,7 +9,7 @@ export async function deleteUser(id: string) {
     await prisma.user.delete({ where: { id } });
     revalidatePath("/admin/customers");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to delete user" };
   }
 }

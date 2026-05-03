@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateOrderStatus } from "@/actions/admin"; 
+import { updateOrderStatus } from "@/actions/admin";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
+import { OrderStatus } from "@prisma/client";
 
 export function OrderStatusSelect({ orderId, currentStatus }: { orderId: string, currentStatus: string }) {
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState(currentStatus || "PENDING");
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = e.target.value;
+    const newStatus = e.target.value as OrderStatus;
     setStatus(newStatus);
-    
+
     startTransition(async () => {
       const res = await updateOrderStatus(orderId, newStatus);
       if (res.success) {

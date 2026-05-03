@@ -3,7 +3,9 @@ import { useState } from "react";
 import { X, Loader2, CheckCircle2, ArrowRight, User, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { sendQuizResults } from "@/actions/newsletter";
+import { sendQuizResults, type QuizAiResult } from "@/actions/newsletter";
+
+type Answers = Record<string, string>;
 
 const questions = [
   { id: "type", q: "How does your skin feel midday?", options: ["Oily/Shiny", "Tight/Dry", "Oily in T-zone only", "Irritated/Red"] },
@@ -15,8 +17,8 @@ export function SkinQuizModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [currentStep, setCurrentStep] = useState<"form" | "quiz" | "loading" | "result">("form");
   const [userData, setUserData] = useState({ name: "", email: "" });
   const [quizStep, setQuizStep] = useState(0);
-  const [answers, setAnswers] = useState<any>({});
-  const [result, setResult] = useState<any>(null);
+  const [answers, setAnswers] = useState<Answers>({});
+  const [result, setResult] = useState<QuizAiResult | null>(null);
 
   if (!isOpen) return null;
 
@@ -35,21 +37,21 @@ export function SkinQuizModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     }
   };
 
-  const processWithAI = async (finalAnswers: any) => {
+  const processWithAI = async (finalAnswers: Answers) => {
     setCurrentStep("loading");
     try {
       const res = await fetch("/api/skin-quiz", {
         method: "POST",
         body: JSON.stringify({ answers: finalAnswers }),
       });
-      const aiData = await res.json();
+      const aiData = (await res.json()) as QuizAiResult;
       setResult(aiData);
-      
+
       // Send Emails
       await sendQuizResults(userData, aiData);
-      
+
       setCurrentStep("result");
-    } catch (e) {
+    } catch {
       alert("Something went wrong. Try again.");
       onClose();
     }
@@ -139,7 +141,7 @@ export function SkinQuizModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                 </div>
                 <div className="space-y-3">
                   <p className="text-[10px] font-bold uppercase text-zinc-400">The Routine</p>
-                  {result.routine.map((step: string, i: number) => (
+                  {result.routine.map((step, i) => (
                     <p key={i} className="text-sm leading-relaxed flex gap-3">
                       <span className="font-bold text-[#B59461]">{i+1}.</span> {step}
                     </p>

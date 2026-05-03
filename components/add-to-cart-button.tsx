@@ -1,13 +1,13 @@
 "use client";
-import { useCartStore } from "@/hooks/use-cart-store";
+import { useCartStore, type ProductInput } from "@/hooks/use-cart-store";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 
-export function AddToCartButton({ product }: { product: any }) {
+export function AddToCartButton({ product }: { product: ProductInput }) {
   const addToCart = useCartStore((state) => state.addToCart);
 
   return (
-    <Button 
+    <Button
       onClick={() => addToCart({
         id: product.id,
         name: product.name,

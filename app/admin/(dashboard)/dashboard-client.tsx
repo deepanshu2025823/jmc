@@ -11,7 +11,28 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { updateRazorpaySettings } from "@/actions/admin";
 
-function RazorpaySettingsBox({ settings }: { settings: any }) {
+export interface DashboardStats {
+  totalRevenue: number;
+  totalOrders: number;
+  totalProducts: number;
+  totalUsers: number;
+}
+
+export interface DashboardSettings {
+  isCodEnabled: boolean;
+  isRazorpayEnabled: boolean;
+  razorpayKeyId: string | null;
+  razorpayKeySecret: string | null;
+}
+
+export interface RecentOrder {
+  id: string;
+  totalAmount: number | string;
+  status: string;
+  user?: { name: string | null; email: string } | null;
+}
+
+function RazorpaySettingsBox({ settings }: { settings: DashboardSettings | null }) {
   const [loading, setLoading] = useState(false);
   const [rzpEnabled, setRzpEnabled] = useState(settings?.isRazorpayEnabled || false);
   const [keyId, setKeyId] = useState(settings?.razorpayKeyId || "");
@@ -71,7 +92,7 @@ function RazorpaySettingsBox({ settings }: { settings: any }) {
   );
 }
 
-export function DashboardClient({ stats, recentOrders, settings }: { stats: any, recentOrders: any[], settings: any }) {
+export function DashboardClient({ stats, recentOrders, settings }: { stats: DashboardStats; recentOrders: RecentOrder[]; settings: DashboardSettings }) {
   const [isPending, startTransition] = useTransition();
   const [isCodEnabled, setIsCodEnabled] = useState(settings.isCodEnabled);
 
@@ -164,7 +185,7 @@ export function DashboardClient({ stats, recentOrders, settings }: { stats: any,
               {recentOrders.length === 0 ? (
                 <p className="text-sm text-zinc-500 text-center py-4">No orders yet.</p>
               ) : (
-                recentOrders.map((order: any) => (
+                recentOrders.map((order) => (
                   <div key={order.id} className="flex items-center justify-between group border-b border-zinc-50 pb-4 last:border-0 last:pb-0">
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded-full bg-zinc-100 flex items-center justify-center border border-zinc-200">

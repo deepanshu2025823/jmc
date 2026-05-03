@@ -43,7 +43,7 @@ export default async function NewsletterPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {subscribers.map((sub: any, index: number) => (
+              {subscribers.map((sub, index) => (
                 <TableRow key={sub.id} className="hover:bg-zinc-50/50 transition-colors h-16">
                   <TableCell className="font-bold text-zinc-400 text-xs">
                     {index + 1}

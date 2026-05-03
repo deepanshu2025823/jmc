@@ -1,26 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingBag, Eye, Calendar, Trash2, Package, User, MapPin } from "lucide-react";
+import Image from "next/image";
+import { ShoppingBag, Eye, Calendar, Trash2, Package, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderStatusSelect } from "@/components/order-status-select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { clearAllOrders } from "@/actions/admin"; 
+import { clearAllOrders } from "@/actions/admin";
 import { toast } from "sonner";
 
-const formatDate = (dateString: string) => {
+export interface AdminOrderItem {
+  id: string;
+  quantity: number;
+  price: number | string;
+  product?: { name: string; imageUrl: string | null } | null;
+}
+
+export interface AdminOrder {
+  id: string;
+  totalAmount: number | string;
+  status: string;
+  createdAt: string | Date;
+  user?: { name: string | null; email: string } | null;
+  orderItems?: AdminOrderItem[];
+}
+
+const formatDate = (dateString: string | Date) => {
   if (!dateString) return "";
   const date = new Date(dateString);
   return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
 };
 
-export function OrdersClient({ orders }: { orders: any[] }) {
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+export function OrdersClient({ orders }: { orders: AdminOrder[] }) {
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
-  const openDetails = (order: any) => {
+  const openDetails = (order: AdminOrder) => {
     setSelectedOrder(order);
     setIsDetailsOpen(true);
   };
@@ -73,7 +90,7 @@ export function OrdersClient({ orders }: { orders: any[] }) {
       ) : (
         <>
           <div className="md:hidden flex flex-col gap-4">
-            {orders.map((order: any) => (
+            {orders.map((order) => (
               <div key={order.id} className="border border-zinc-200 bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-5">
                 <div className="flex justify-between items-start">
                   <div>
@@ -118,7 +135,7 @@ export function OrdersClient({ orders }: { orders: any[] }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {orders.map((order: any) => (
+                {orders.map((order) => (
                   <TableRow key={order.id} className="hover:bg-zinc-50/50 transition-colors h-20">
                     
                     <TableCell className="font-bold text-zinc-900 font-mono">
@@ -188,10 +205,18 @@ export function OrdersClient({ orders }: { orders: any[] }) {
                 <div className="space-y-4">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Purchased Rituals</p>
                   <div className="space-y-3">
-                    {selectedOrder.orderItems?.map((item: any) => (
+                    {selectedOrder.orderItems?.map((item) => (
                       <div key={item.id} className="flex items-center gap-4 bg-white border border-zinc-100 p-3 rounded-xl">
-                        <div className="h-14 w-14 bg-[#F9F6F0] rounded-lg overflow-hidden shrink-0">
-                          <img src={item.product?.imageUrl} alt={item.product?.name} className="h-full w-full object-cover" />
+                        <div className="h-14 w-14 bg-[#F9F6F0] rounded-lg overflow-hidden shrink-0 relative">
+                          {item.product?.imageUrl && (
+                            <Image
+                              src={item.product.imageUrl}
+                              alt={item.product?.name ?? ""}
+                              fill
+                              sizes="56px"
+                              className="object-cover"
+                            />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-serif text-sm font-bold text-zinc-900 truncate">{item.product?.name}</p>

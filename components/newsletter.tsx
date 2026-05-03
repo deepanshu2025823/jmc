@@ -46,7 +46,7 @@ export function Newsletter() {
             <div className="animate-in zoom-in duration-300 py-4">
               <div className="flex flex-col items-center gap-3">
                 <CheckCircle2 className="h-12 w-12 text-[#50540b]" />
-                <p className="text-lg font-bold text-zinc-900">You're on the list! ✨</p>
+                <p className="text-lg font-bold text-zinc-900">You&apos;re on the list! ✨</p>
                 <p className="text-sm text-zinc-500">Check your email for a special welcome gift.</p>
               </div>
             </div>

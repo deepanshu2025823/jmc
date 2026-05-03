@@ -52,7 +52,7 @@ export default async function ProductsPage() {
       ) : (
         <>
           <div className="md:hidden flex flex-col gap-4">
-            {products.map((product: any) => (
+            {products.map((product) => (
               <div key={product.id} className="border border-zinc-200 bg-white rounded-[2rem] p-5 shadow-sm flex flex-col gap-4">
                 
                 <div className="flex items-center gap-4">
@@ -118,7 +118,7 @@ export default async function ProductsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product: any) => (
+                {products.map((product) => (
                   <TableRow key={product.id} className="hover:bg-zinc-50/30 transition-colors border-b border-zinc-50 last:border-0 h-20">
                     
                     <TableCell className="text-center">

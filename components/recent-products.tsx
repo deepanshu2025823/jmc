@@ -4,15 +4,16 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
+import type { StorefrontProduct } from "@/types/storefront";
 
 export function RecentProducts({ currentProductId }: { currentProductId: string }) {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<StorefrontProduct[]>([]);
 
   useEffect(() => {
     const fetchRecent = async () => {
-      const res = await fetch("/api/products/bestsellers"); 
+      const res = await fetch("/api/products/bestsellers");
       const data = await res.json();
-      const filtered = data.filter((p: any) => p.id !== currentProductId).slice(0, 4);
+      const filtered = (data as StorefrontProduct[]).filter((p) => p.id !== currentProductId).slice(0, 4);
       setProducts(filtered);
     };
     fetchRecent();
@@ -37,13 +38,15 @@ export function RecentProducts({ currentProductId }: { currentProductId: string 
           {products.map((product) => (
             <Link key={product.id} href={`/product/${product.id}`} className="group space-y-4">
               <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-[#F9F6F0]">
-                <Image 
-                  src={product.imageUrl} 
-                  alt={product.name} 
-                  fill 
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                />
+                {product.imageUrl && (
+                  <Image
+                    src={product.imageUrl}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                )}
               </div>
               <div className="space-y-1 px-1">
                 <div className="flex gap-0.5 mb-1">

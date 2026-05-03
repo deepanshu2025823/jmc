@@ -127,7 +127,7 @@ export default function AboutPage() {
         
         <div className="mt-16 text-center max-w-3xl mx-auto">
           <p className="text-xl text-zinc-600 italic font-serif">
-            "From a color-adapting BB cream to deeply nourishing night treatments, each product blends seamlessly with your skin—enhancing, not hiding."
+            &ldquo;From a color-adapting BB cream to deeply nourishing night treatments, each product blends seamlessly with your skin—enhancing, not hiding.&rdquo;
           </p>
         </div>
       </div>

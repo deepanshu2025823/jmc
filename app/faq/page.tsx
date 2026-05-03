@@ -94,7 +94,7 @@ export default function FAQPage() {
             Frequently Asked <span className="italic font-light">Questions</span>
           </h1>
           <p className="text-zinc-500 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
-            Everything you need to know about our luxury skincare rituals, shipping, and returns. Can't find the answer you're looking for? Reach out to our concierge team.
+            Everything you need to know about our luxury skincare rituals, shipping, and returns. Can&apos;t find the answer you&apos;re looking for? Reach out to our concierge team.
           </p>
         </div>
 

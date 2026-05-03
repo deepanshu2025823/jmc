@@ -10,7 +10,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function submitContactForm(data: any) {
+export interface ContactFormPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+export async function submitContactForm(data: ContactFormPayload) {
   const { firstName, lastName, email, subject, message } = data;
 
   try {

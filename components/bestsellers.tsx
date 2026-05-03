@@ -8,25 +8,23 @@ import { useCartStore } from "@/hooks/use-cart-store";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import type { StorefrontProduct } from "@/types/storefront";
 
 export function Bestsellers() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [mounted, setMounted] = useState(false); 
+  const [products, setProducts] = useState<StorefrontProduct[]>([]);
 
-  const store = useCartStore();
-  const addToCart = store?.addToCart;
-  const addToWishlist = store?.addToWishlist;
-  const wishlist = store?.wishlist || [];
+  const addToCart = useCartStore((s) => s.addToCart);
+  const addToWishlist = useCartStore((s) => s.addToWishlist);
+  const wishlist = useCartStore((s) => s.wishlist);
 
   useEffect(() => {
-    setMounted(true);
     const fetchProducts = async () => {
       try {
         const res = await fetch("/api/products/bestsellers");
         const data = await res.json();
-        
+
         if (Array.isArray(data)) {
-          setProducts(data.slice(0, 3)); 
+          setProducts(data.slice(0, 3));
         } else {
           setProducts([]);
         }
@@ -36,8 +34,6 @@ export function Bestsellers() {
     };
     fetchProducts();
   }, []);
-
-  if (!mounted) return null;
 
   return (
     <section className="py-20 md:py-32 bg-white overflow-hidden">
@@ -59,7 +55,7 @@ export function Bestsellers() {
           const images = Array.isArray(product.images) ? product.images : [];
           const secondaryImage = images.length > 1 ? images[1] : product.imageUrl;
           
-          const isWishlisted = Array.isArray(wishlist) && wishlist.some((item: any) => item.id === product.id);
+          const isWishlisted = wishlist.some((item) => item.id === product.id);
 
           return (
             <div key={product.id} className="group flex flex-col space-y-3 md:space-y-5">
@@ -93,16 +89,13 @@ export function Bestsellers() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (addToWishlist) {
-                      addToWishlist({
-                        id: product.id,
-                        name: product.name,
-                        price: product.price,
-                        imageUrl: product.imageUrl,
-                        quantity: 1
-                      });
-                      toast.success(isWishlisted ? "Removed from Wishlist" : "Added to Wishlist");
-                    }
+                    addToWishlist({
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      imageUrl: product.imageUrl ?? "",
+                    });
+                    toast.success(isWishlisted ? "Removed from Wishlist" : "Added to Wishlist");
                   }}
                   className="absolute top-3 right-3 md:top-5 md:right-5 p-2 bg-white/80 backdrop-blur-md rounded-full transition-all shadow-sm z-30"
                 >
@@ -117,16 +110,13 @@ export function Bestsellers() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      if (addToCart) {
-                        addToCart({
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          imageUrl: product.imageUrl,
-                          quantity: 1
-                        });
-                        toast.success("Added to Cart");
-                      }
+                      addToCart({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        imageUrl: product.imageUrl ?? "",
+                      });
+                      toast.success("Added to Cart");
                     }}
                     className="w-full bg-zinc-900 text-white hover:bg-[#50540b] rounded-full font-bold h-10 md:h-12 shadow-2xl transition-colors border-none"
                    >

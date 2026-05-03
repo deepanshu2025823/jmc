@@ -64,7 +64,7 @@ function LoginContent() {
       } else {
         toast.error("Failed to send OTP. Please check your network.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Connection error");
     } finally {
       setLoading(false);

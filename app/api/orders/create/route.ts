@@ -18,15 +18,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { shippingDetails, items, totalAmount } = await req.json();
+    const body = (await req.json()) as {
+      shippingDetails?: Record<string, FormDataEntryValue | boolean | string>;
+      items: Array<{ id: string; quantity?: number; price: number | string }>;
+      totalAmount: number;
+    };
+    const { items, totalAmount } = body;
 
     const order = await prisma.order.create({
       data: {
         userId: user.id,
         totalAmount: totalAmount,
-        status: "PENDING", 
+        status: "PENDING",
         orderItems: {
-          create: items.map((item: any) => ({
+          create: items.map((item) => ({
             productId: item.id,
             quantity: item.quantity || 1,
             price: Number(item.price)

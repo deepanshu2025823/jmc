@@ -17,9 +17,14 @@ export default function ContactPage() {
     setLoading(true);
     
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
 
-    const res = await submitContactForm(data);
+    const res = await submitContactForm({
+      firstName: String(formData.get("firstName") ?? ""),
+      lastName: String(formData.get("lastName") ?? ""),
+      email: String(formData.get("email") ?? ""),
+      subject: String(formData.get("subject") ?? ""),
+      message: String(formData.get("message") ?? ""),
+    });
     
     setLoading(false);
 
@@ -108,7 +113,7 @@ export default function ContactPage() {
               </div>
               <h3 className="font-serif text-xl font-bold mb-4 relative z-10">Need Quick Answers?</h3>
               <p className="text-sm text-zinc-400 mb-6 relative z-10 leading-relaxed">
-                Before reaching out, you might find what you're looking for in our frequently asked questions.
+                Before reaching out, you might find what you&apos;re looking for in our frequently asked questions.
               </p>
               <Link href="/faq" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-[#B59461] transition-colors relative z-10">
                 Visit FAQ <ArrowRight className="h-4 w-4" />
@@ -119,7 +124,7 @@ export default function ContactPage() {
           <div className="lg:col-span-7">
             <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-zinc-100">
               <h2 className="text-2xl font-serif font-bold text-zinc-900 mb-2">Send a Message</h2>
-              <p className="text-sm text-zinc-500 mb-10">Fill out the form below and we'll get back to you securely.</p>
+              <p className="text-sm text-zinc-500 mb-10">Fill out the form below and we&apos;ll get back to you securely.</p>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

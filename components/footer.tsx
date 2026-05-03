@@ -1,25 +1,24 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, Facebook, Instagram, Twitter, Home, LayoutGrid, Heart, ShoppingBag, User } from "lucide-react";
+import { Facebook, Instagram, Twitter, Home, LayoutGrid, Heart, ShoppingBag, User } from "lucide-react";
 import { useCartStore } from "@/hooks/use-cart-store";
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+const subscribe = () => () => {};
+const useIsClient = () => useSyncExternalStore(subscribe, () => true, () => false);
+
 export function Footer() {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  
-  const store = useCartStore() as any;
-  const cart = store?.cart || [];
-  const wishlist = store?.wishlist || [];
-  const setCartOpen = store?.setCartOpen;
-  const setWishlistOpen = store?.setWishlistOpen;
+  const mounted = useIsClient();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const cart = useCartStore((s) => s.cart);
+  const wishlist = useCartStore((s) => s.wishlist);
+  const setCartOpen = useCartStore((s) => s.setCartOpen);
+  const setWishlistOpen = useCartStore((s) => s.setWishlistOpen);
 
   return (
     <>
@@ -28,10 +27,10 @@ export function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16 text-center md:text-left">
             <div className="space-y-6 md:col-span-1 flex flex-col items-center md:items-start">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/footerlogo.png" className="h-20 w-20" alt="JMC" />
+                <Image src="/footerlogo.png" width={80} height={80} className="h-20 w-20" alt="JMC" />
               </Link>
               <p className="text-sm leading-relaxed max-w-xs">
-                Elevating your daily skincare routine into a luxurious, transformative ritual with nature's purest elements.
+                Elevating your daily skincare routine into a luxurious, transformative ritual with nature&apos;s purest elements.
               </p>
             </div>
 
@@ -49,7 +48,7 @@ export function Footer() {
               <h3 className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Client Care</h3>
               <ul className="space-y-4 text-sm">
                 <li><Link href="/contact" className="hover:text-[#B59461] transition-colors">Contact Us</Link></li>
-                <li><Link href="/shipping-returns" className="hover:text-[#B59461] transition-colors">Shipping & Returns</Link></li>
+                <li><Link href="/shipping-returns" className="hover:text-[#B59461] transition-colors">Shipping &amp; Returns</Link></li>
                 <li><Link href="/faq" className="hover:text-[#B59461] transition-colors">FAQ</Link></li>
                 <li><Link href="/profile" className="hover:text-[#B59461] transition-colors">My Account</Link></li>
               </ul>
@@ -66,7 +65,7 @@ export function Footer() {
           </div>
 
           <div className="pt-8 border-t border-zinc-900 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
-            <p>&copy; {new Date().getFullYear()} JMC Luxury Skincare. All rights reserved | <a href="https://royalfinitytechnologies.com/" target="_blank" rel="noopener noreferrer">Design & Developed By Royalfinity Technologies</a> </p>
+            <p>&copy; {new Date().getFullYear()} JMC Luxury Skincare. All rights reserved | <a href="https://royalfinitytechnologies.com/" target="_blank" rel="noopener noreferrer">Design &amp; Developed By Royalfinity Technologies</a> </p>
             <div className="flex gap-6">
               <Link href="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
               <Link href="/terms-of-service" className="hover:text-white">Terms of Service</Link>
@@ -87,7 +86,7 @@ export function Footer() {
           <span className="text-[8px] font-bold uppercase tracking-widest">Shop</span>
         </Link>
 
-        <button onClick={() => setWishlistOpen && setWishlistOpen(true)} className="flex flex-col items-center gap-1 p-2 text-zinc-400 hover:text-[#B59461] relative">
+        <button onClick={() => setWishlistOpen(true)} className="flex flex-col items-center gap-1 p-2 text-zinc-400 hover:text-[#B59461] relative">
           <Heart className="h-5 w-5" />
           <span className="text-[8px] font-bold uppercase tracking-widest">Wishlist</span>
           {mounted && wishlist.length > 0 && (
@@ -97,7 +96,7 @@ export function Footer() {
           )}
         </button>
 
-        <button onClick={() => setCartOpen && setCartOpen(true)} className="flex flex-col items-center gap-1 p-2 text-zinc-400 hover:text-[#B59461] relative">
+        <button onClick={() => setCartOpen(true)} className="flex flex-col items-center gap-1 p-2 text-zinc-400 hover:text-[#B59461] relative">
           <ShoppingBag className="h-5 w-5" />
           <span className="text-[8px] font-bold uppercase tracking-widest">Bag</span>
           {mounted && cart.length > 0 && (

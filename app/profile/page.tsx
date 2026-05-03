@@ -35,7 +35,7 @@ export default async function ProfilePage() {
       ...user,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
-      addresses: user.addresses?.map((addr: any) => ({
+      addresses: user.addresses?.map((addr) => ({
         ...addr,
         createdAt: addr.createdAt.toISOString(),
         updatedAt: addr.updatedAt.toISOString(),
@@ -67,7 +67,7 @@ export default async function ProfilePage() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#fafafa] p-6 text-center">
         <h1 className="text-3xl font-serif font-bold text-zinc-900 mb-3">System Offline</h1>
         <p className="text-zinc-500 max-w-md">
-          We couldn't connect to the secure database server (Port 3306). Please ensure your database service (e.g., XAMPP MySQL) is actively running.
+          We couldn&apos;t connect to the secure database server (Port 3306). Please ensure your database service (e.g., XAMPP MySQL) is actively running.
         </p>
       </div>
     );

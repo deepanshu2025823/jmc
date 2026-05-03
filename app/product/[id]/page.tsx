@@ -25,7 +25,12 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
   const product = {
     ...rawProduct,
     price: Number(rawProduct.price),
-    images: Array.isArray(rawProduct.images) ? rawProduct.images : [rawProduct.imageUrl]
+    imageUrl: rawProduct.imageUrl ?? "",
+    images: (Array.isArray(rawProduct.images)
+      ? (rawProduct.images as unknown[]).filter((v): v is string => typeof v === "string")
+      : rawProduct.imageUrl
+      ? [rawProduct.imageUrl]
+      : []),
   };
 
   return (
@@ -44,7 +49,7 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-20">
           
           <div className="lg:col-span-7">
-            <ProductGallery images={product.images as string[]} productName={product.name} />
+            <ProductGallery images={product.images} productName={product.name} />
           </div>
 
           <div className="lg:col-span-5 flex flex-col space-y-8">

@@ -56,7 +56,7 @@ export default async function CouponsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {coupons.map((coupon: any) => (
+              {coupons.map((coupon) => (
                 <div key={coupon.id} className="bg-white border-2 border-zinc-100 rounded-xl p-5 relative overflow-hidden group shadow-sm">
                   
                   <div className="flex justify-between items-center mb-6">

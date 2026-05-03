@@ -1,4 +1,4 @@
-import { Users, Mail, Calendar, ShoppingBag, UserCircle, ShieldAlert, Edit } from "lucide-react";
+import { Users, UserCircle, ShieldAlert, Edit } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -24,8 +24,8 @@ export default async function CustomersPage() {
     }
   });
 
-  const customers = allUsers.filter((u: any) => u.role === "USER");
-  const admins = allUsers.filter((u: any) => u.role === "ADMIN");
+  const customers = allUsers.filter((u) => u.role === "USER");
+  const admins = allUsers.filter((u) => u.role === "ADMIN");
 
   return (
     <div className="space-y-6">
@@ -51,8 +51,8 @@ export default async function CustomersPage() {
           ) : (
             <>
               <div className="md:hidden flex flex-col gap-4">
-                {customers.map((user: any) => {
-                  const totalSpent = user.orders.reduce((sum: number, order: any) => sum + Number(order.totalAmount), 0);
+                {customers.map((user) => {
+                  const totalSpent = user.orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
                   return (
                     <div key={user.id} className="bg-white border border-zinc-200 rounded-xl p-4 shadow-sm space-y-4">
                       <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export default async function CustomersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {customers.map((user: any) => (
+                    {customers.map((user) => (
                       <TableRow key={user.id} className="hover:bg-zinc-50/50">
                         <TableCell>
                           <div className="flex items-center gap-3">
@@ -114,7 +114,7 @@ export default async function CustomersPage() {
                         </TableCell>
                         <TableCell className="text-center font-bold">{user.orders.length}</TableCell>
                         <TableCell className="text-right font-bold text-green-600">
-                          ₹{user.orders.reduce((sum: number, o: any) => sum + Number(o.totalAmount), 0).toLocaleString("en-IN")}
+                          ₹{user.orders.reduce((sum, o) => sum + Number(o.totalAmount), 0).toLocaleString("en-IN")}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -150,7 +150,7 @@ export default async function CustomersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {admins.map((user: any) => (
+                {admins.map((user) => (
                   <TableRow key={user.id} className="hover:bg-zinc-50/50">
                     <TableCell>
                       <div className="flex items-center gap-3">

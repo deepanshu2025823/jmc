@@ -19,7 +19,7 @@ export async function POST(req: Request) {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-    } as any);
+    });
 
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?id=${user.id}`;
 
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Email failed" }, { status: 500 });
   }
 }

@@ -71,7 +71,7 @@ export function Reviews() {
 
               {/* Review text */}
               <p className="text-zinc-300 text-sm leading-relaxed flex-1">
-                "{review.text}"
+                &ldquo;{review.text}&rdquo;
               </p>
 
               {/* Footer */}

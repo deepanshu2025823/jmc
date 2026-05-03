@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { v2 as cloudinary } from "cloudinary";
+import type { Prisma } from "@prisma/client";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dwqdav3kq",
@@ -10,38 +11,45 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET || "H1dGEr4ZebMXzfYf31Jr8RAE2Jw",
 });
 
-async function saveFile(file: File | null | any): Promise<string | null> {
+function isUploadableFile(value: FormDataEntryValue | null): value is File {
+  return (
+    !!value &&
+    typeof value !== "string" &&
+    typeof (value as File).arrayBuffer === "function" &&
+    (value as File).size > 0 &&
+    !!(value as File).name &&
+    (value as File).name !== "undefined"
+  );
+}
+
+async function saveFile(file: FormDataEntryValue | null): Promise<string | null> {
   try {
-    if (!file || typeof file === "string" || file.size === 0 || !file.name || file.name === "undefined") {
+    if (!isUploadableFile(file)) {
       return null;
     }
-    
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
+
     return new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        { folder: "jmc_luxury" }, 
+        { folder: "jmc_luxury" },
         (error, result) => {
           if (error) {
             console.error("Cloudinary Error Details:", error);
             reject(error);
           } else {
-            resolve(result?.secure_url || null); 
+            resolve(result?.secure_url || null);
           }
         }
       ).end(buffer);
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error saving file to Cloudinary:", error);
-    throw new Error(`Cloud Upload Failed: ${error.message}`);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Cloud Upload Failed: ${message}`);
   }
-}
-
-async function deleteFileFromDisk(imageUrl: string | null) {
-  if (!imageUrl) return;
-  console.log("Image reference removed:", imageUrl);
 }
 
 export async function createProduct(formData: FormData) {
@@ -87,12 +95,13 @@ export async function createProduct(formData: FormData) {
     
     return { success: true };
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Create Product Fatal Error:", error);
-    if (error.code === 'P2002') {
+    if (error instanceof Error && (error as { code?: string }).code === 'P2002') {
       return { success: false, error: "This Product Slug is already in use. Please try a different one." };
     }
-    return { success: false, error: error.message || "An unexpected database error occurred." };
+    const message = error instanceof Error ? error.message : "An unexpected database error occurred.";
+    return { success: false, error: message };
   }
 }
 
@@ -122,8 +131,8 @@ export async function updateProduct(id: string, formData: FormData) {
     }
 
     const existingProduct = await prisma.product.findUnique({ where: { id } });
-    const dataToUpdate: any = { name, slug, description, price, stock, category };
-    
+    const dataToUpdate: Prisma.ProductUpdateInput = { name, slug, description, price, stock, category };
+
     if (newImageUrl) {
       dataToUpdate.imageUrl = newImageUrl;
     }
@@ -141,15 +150,16 @@ export async function updateProduct(id: string, formData: FormData) {
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${id}/edit`);
     revalidatePath("/admin");
-    
+
     return { success: true };
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Product Update Fatal Error:", error);
-    if (error.code === 'P2002') {
+    if (error instanceof Error && (error as { code?: string }).code === 'P2002') {
       return { success: false, error: "This Product Slug is already in use. Please enter a unique slug." };
     }
-    return { success: false, error: error.message || "Something went wrong while updating." };
+    const message = error instanceof Error ? error.message : "Something went wrong while updating.";
+    return { success: false, error: message };
   }
 }
 
@@ -187,8 +197,9 @@ export async function deleteProductImage(productId: string, imageUrl: string, is
 
     revalidatePath(`/admin/products/${productId}/edit`);
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Failed to delete image:", error);
-    return { success: false, error: error.message || "Failed to remove image reference from database." };
+    const message = error instanceof Error ? error.message : "Failed to remove image reference from database.";
+    return { success: false, error: message };
   }
 }

@@ -1,5 +1,4 @@
 import { Header } from "@/components/header";
-import Link from "next/link";
 import { Shield, Lock, Eye, Mail } from "lucide-react";
 
 export const metadata = {
@@ -73,7 +72,7 @@ export default function PrivacyPolicyPage() {
           <section className="space-y-4">
             <h2 className="text-xl font-serif font-bold text-zinc-900 border-b border-zinc-100 pb-2">4. Your Rights</h2>
             <p>
-              You have full control over your data. You may access, update, or request the deletion of your personal account information at any time. If you wish to unsubscribe from our marketing communications, you can do so by clicking the "Unsubscribe" link in any email we send.
+              You have full control over your data. You may access, update, or request the deletion of your personal account information at any time. If you wish to unsubscribe from our marketing communications, you can do so by clicking the &ldquo;Unsubscribe&rdquo; link in any email we send.
             </p>
           </section>
 

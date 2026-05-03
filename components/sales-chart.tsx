@@ -4,7 +4,12 @@ import {
   Tooltip, ResponsiveContainer 
 } from "recharts";
 
-export function SalesChart({ data }: { data: any[] }) {
+export interface SalesDatum {
+  date: string;
+  revenue: number;
+}
+
+export function SalesChart({ data }: { data: SalesDatum[] }) {
   return (
     <div className="h-[350px] w-full">
       <ResponsiveContainer width="100%" height="100%">

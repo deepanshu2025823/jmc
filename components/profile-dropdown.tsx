@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 
-export function ProfileDropdown({ user }: { user: any }) {
+export function ProfileDropdown({ user }: { user?: { name?: string | null; email?: string | null } | null }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 outline-none cursor-pointer hover:bg-zinc-100 p-2 rounded-md transition">

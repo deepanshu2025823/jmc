@@ -13,7 +13,7 @@ export default async function AdminDashboard() {
     select: { totalAmount: true }
   });
   
-  const totalRevenue = paidOrders.reduce((sum: number, order: { totalAmount: any }) => sum + Number(order.totalAmount), 0);
+  const totalRevenue = paidOrders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
 
   const recentOrders = await prisma.order.findMany({
     take: 5,
