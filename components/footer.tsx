@@ -20,6 +20,8 @@ export function Footer() {
   const setCartOpen = useCartStore((s) => s.setCartOpen);
   const setWishlistOpen = useCartStore((s) => s.setWishlistOpen);
 
+  if (pathname?.startsWith("/admin")) return null;
+
   return (
     <>
       <footer className="bg-zinc-950 text-zinc-400 pt-20 pb-32 md:pb-12 border-t border-zinc-900">
