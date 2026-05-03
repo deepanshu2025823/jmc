@@ -125,6 +125,53 @@ export async function updateOrderStatus(orderId: string, newStatus: OrderStatus)
   }
 }
 
+export async function clearAllLeads() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return { success: false, error: "Unauthorized." };
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const leadUsers = await tx.user.findMany({
+        where: { role: "USER" },
+        select: { id: true },
+      });
+      const leadIds = leadUsers.map((u) => u.id);
+
+      if (leadIds.length === 0) {
+        return { deleted: 0 };
+      }
+
+      const leadOrders = await tx.order.findMany({
+        where: { userId: { in: leadIds } },
+        select: { id: true },
+      });
+      const orderIds = leadOrders.map((o) => o.id);
+
+      if (orderIds.length > 0) {
+        await tx.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
+        await tx.order.deleteMany({ where: { id: { in: orderIds } } });
+      }
+
+      const deleted = await tx.user.deleteMany({
+        where: { id: { in: leadIds } },
+      });
+
+      return { deleted: deleted.count };
+    });
+
+    revalidatePath("/admin/leads");
+    revalidatePath("/admin/customers");
+    revalidatePath("/admin/orders");
+
+    return { success: true, deleted: result.deleted };
+  } catch (error) {
+    console.error("Clear All Leads Error:", error);
+    return { success: false, error: "Failed to clear leads." };
+  }
+}
+
 export async function clearAllOrders() {
   try {
     await prisma.orderItem.deleteMany({});

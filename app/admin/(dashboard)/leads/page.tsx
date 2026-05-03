@@ -1,5 +1,8 @@
 import prisma from "@/lib/prisma";
 import { Mail, User, Sparkles, Calendar } from "lucide-react";
+import { ClearLeadsButton } from "./clear-leads-button";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminLeadsPage() {
   const leads = await prisma.user.findMany({
@@ -9,16 +12,19 @@ export default async function AdminLeadsPage() {
 
   return (
     <div className="p-8 space-y-8 bg-zinc-50 min-h-screen">
-      <div className="flex justify-between items-end">
+      <div className="flex justify-between items-end gap-4 flex-wrap">
         <div className="space-y-1">
           <h1 className="text-3xl font-serif text-zinc-900">Customer Leads</h1>
           <p className="text-zinc-500 text-sm font-medium uppercase tracking-widest">
             People who completed the AI Quiz & Newsletter
           </p>
         </div>
-        <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-zinc-100">
-          <p className="text-[10px] font-black uppercase text-[#B59461]">Total Leads</p>
-          <p className="text-2xl font-bold text-zinc-900">{leads.length}</p>
+        <div className="flex items-center gap-3">
+          <ClearLeadsButton totalLeads={leads.length} />
+          <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-zinc-100">
+            <p className="text-[10px] font-black uppercase text-[#B59461]">Total Leads</p>
+            <p className="text-2xl font-bold text-zinc-900">{leads.length}</p>
+          </div>
         </div>
       </div>
 
