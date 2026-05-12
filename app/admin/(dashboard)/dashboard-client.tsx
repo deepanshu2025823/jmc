@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { IndianRupee, Package, ShoppingCart, Users, ArrowUpRight, ShoppingBag, Loader2 } from "lucide-react";
+import { IndianRupee, Package, ShoppingCart, Users, ArrowUpRight, ShoppingBag, Loader2, Truck } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useState, useTransition } from "react";
@@ -10,6 +10,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { updateRazorpaySettings } from "@/actions/admin";
+import {
+  updateShiprocketSettings,
+  generateShiprocketWebhookToken,
+} from "@/actions/shiprocket";
+import { CopyButton } from "@/components/copy-button";
 
 export interface DashboardStats {
   totalRevenue: number;
@@ -23,6 +28,11 @@ export interface DashboardSettings {
   isRazorpayEnabled: boolean;
   razorpayKeyId: string | null;
   razorpayKeySecret: string | null;
+  isShiprocketEnabled: boolean;
+  shiprocketEmail: string | null;
+  shiprocketPassword: string | null;
+  shiprocketPickupLocation: string | null;
+  shiprocketWebhookToken: string | null;
 }
 
 export interface RecentOrder {
@@ -86,6 +96,192 @@ function RazorpaySettingsBox({ settings }: { settings: DashboardSettings | null 
           <Button onClick={handleSave} disabled={loading} className="w-full h-10 bg-[#B59461] hover:bg-[#967a4f] text-white font-bold text-xs uppercase tracking-widest mt-2 rounded-lg">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save API Keys"}
           </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ShiprocketSettingsBox({ settings }: { settings: DashboardSettings | null }) {
+  const [loading, setLoading] = useState(false);
+  const [tokenLoading, setTokenLoading] = useState(false);
+  const [enabled, setEnabled] = useState(settings?.isShiprocketEnabled || false);
+  const [email, setEmail] = useState(settings?.shiprocketEmail || "");
+  const [password, setPassword] = useState(settings?.shiprocketPassword || "");
+  const [pickup, setPickup] = useState(settings?.shiprocketPickupLocation || "Primary");
+  const [webhookToken, setWebhookToken] = useState(
+    settings?.shiprocketWebhookToken || ""
+  );
+
+  const webhookUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/shiprocket/webhook`
+      : "/api/shiprocket/webhook";
+
+  const handleSave = async () => {
+    setLoading(true);
+    const res = await updateShiprocketSettings({
+      isEnabled: enabled,
+      email,
+      password,
+      pickupLocation: pickup,
+      webhookToken,
+    });
+    if (res.success) {
+      toast.success("Shiprocket settings saved!");
+    } else {
+      toast.error(res.error || "Failed to save Shiprocket settings");
+    }
+    setLoading(false);
+  };
+
+  const handleGenerateToken = async () => {
+    setTokenLoading(true);
+    const res = await generateShiprocketWebhookToken();
+    if (res.success && res.token) {
+      setWebhookToken(res.token);
+      toast.success("New webhook token generated and saved");
+    } else {
+      toast.error(res.error || "Failed to generate token");
+    }
+    setTokenLoading(false);
+  };
+
+  return (
+    <div className="p-5 bg-white/5 rounded-xl border border-violet-400/30 backdrop-blur-md space-y-4">
+      <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-lg bg-violet-500/20 flex items-center justify-center">
+            <Truck className="h-4 w-4 text-violet-300" />
+          </div>
+          <div>
+            <p className="text-violet-300 text-xs uppercase font-bold tracking-widest mb-1">Shiprocket</p>
+            <p className="text-sm font-bold text-zinc-300">Auto Shipping &amp; Tracking</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setEnabled(!enabled)}
+          className={cn(
+            "w-12 h-6 rounded-full transition-all duration-300 relative",
+            enabled ? "bg-violet-500" : "bg-zinc-600"
+          )}
+        >
+          <div
+            className={cn(
+              "h-4 w-4 bg-white rounded-full absolute top-1 transition-all duration-300 shadow-md",
+              enabled ? "left-7" : "left-1"
+            )}
+          />
+        </button>
+      </div>
+
+      {enabled && (
+        <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-2">
+          <div>
+            <label className="text-[10px] uppercase font-bold text-zinc-400 mb-1 block">
+              API Email
+            </label>
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="account@yourstore.com"
+              className="bg-black/50 border-white/10 text-white h-10 text-xs rounded-lg focus:border-violet-400"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase font-bold text-zinc-400 mb-1 block">
+              API Password
+            </label>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Shiprocket account password"
+              className="bg-black/50 border-white/10 text-white h-10 text-xs rounded-lg focus:border-violet-400"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase font-bold text-zinc-400 mb-1 block">
+              Pickup Location Name
+            </label>
+            <Input
+              value={pickup}
+              onChange={(e) => setPickup(e.target.value)}
+              placeholder="Primary"
+              className="bg-black/50 border-white/10 text-white h-10 text-xs rounded-lg focus:border-violet-400"
+            />
+            <p className="text-[10px] text-zinc-500 mt-1.5">
+              Must match a registered pickup location in your Shiprocket account.
+            </p>
+          </div>
+          <Button
+            onClick={handleSave}
+            disabled={loading}
+            className="w-full h-10 bg-violet-500 hover:bg-violet-600 text-white font-bold text-xs uppercase tracking-widest mt-2 rounded-lg"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Save Shiprocket Credentials"
+            )}
+          </Button>
+
+          <div className="mt-3 pt-4 border-t border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] uppercase font-bold text-violet-300 tracking-widest">
+                Live Status Webhook
+              </p>
+              {webhookToken && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Active
+                </span>
+              )}
+            </div>
+
+            <div>
+              <label className="text-[10px] uppercase font-bold text-zinc-400 mb-1 block">
+                Webhook URL
+              </label>
+              <div className="flex items-center gap-2 rounded-lg bg-black/50 border border-white/10 px-3 h-10">
+                <span className="flex-1 truncate text-[11px] font-mono text-zinc-300">
+                  {webhookUrl}
+                </span>
+                <CopyButton value={webhookUrl} />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] uppercase font-bold text-zinc-400 mb-1 block">
+                Webhook Token
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  value={webhookToken}
+                  onChange={(e) => setWebhookToken(e.target.value)}
+                  placeholder="Click Generate or paste token"
+                  className="bg-black/50 border-white/10 text-white h-10 text-xs font-mono rounded-lg focus:border-violet-400 flex-1"
+                />
+                <Button
+                  type="button"
+                  onClick={handleGenerateToken}
+                  disabled={tokenLoading}
+                  className="h-10 px-3 bg-zinc-700 hover:bg-zinc-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shrink-0"
+                >
+                  {tokenLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    "Generate"
+                  )}
+                </Button>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-1.5 leading-relaxed">
+                Add this URL + token in Shiprocket → Settings → API → Webhooks.
+                Pass token via <code className="font-mono text-zinc-400">X-Api-Key</code> header.
+                Order status auto-updates when shipments move.
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -244,6 +440,8 @@ export function DashboardClient({ stats, recentOrders, settings }: { stats: Dash
               </div>
 
               <RazorpaySettingsBox settings={settings} />
+
+              <ShiprocketSettingsBox settings={settings} />
 
               <div className="p-4 bg-white/10 rounded-xl border border-white/10 backdrop-blur-md">
                  <p className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-1">Average Order Value</p>

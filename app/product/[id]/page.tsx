@@ -11,6 +11,8 @@ import { BuyNowButton } from "@/components/buy-now-button";
 import { AddToWishlistButton } from "@/components/add-to-wishlist-button"; 
 import { ProductGallery } from "@/components/product-gallery";
 import { RecentProducts } from "@/components/recent-products";
+import { ProductReviews } from "@/components/product-reviews";
+import { getReviewStats } from "@/actions/review";
 
 export default async function ProductPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -21,6 +23,8 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
 
   const rawProduct = await prisma.product.findUnique({ where: { id: id } });
   if (!rawProduct) notFound();
+
+  const reviewStats = await getReviewStats(id);
 
   const product = {
     ...rawProduct,
@@ -59,12 +63,25 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
                 <span className="text-[9px] font-black uppercase text-[#B59461] tracking-widest">Ritual Approved</span>
               </div>
               <h1 className="text-3xl md:text-5xl font-serif text-zinc-900 leading-tight">{product.name}</h1>
-              <div className="flex items-center gap-3">
+              <a href="#reviews" className="flex items-center gap-3 group">
                 <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-[#B59461] text-[#B59461]" />)}
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={
+                        i < Math.round(reviewStats.average)
+                          ? "h-3 w-3 fill-[#B59461] text-[#B59461]"
+                          : "h-3 w-3 text-zinc-200"
+                      }
+                    />
+                  ))}
                 </div>
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">(120 REVIEWS)</span>
-              </div>
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest group-hover:text-zinc-700 transition-colors">
+                  {reviewStats.count > 0
+                    ? `${reviewStats.average.toFixed(1)} (${reviewStats.count} ${reviewStats.count === 1 ? "REVIEW" : "REVIEWS"})`
+                    : "NO REVIEWS YET"}
+                </span>
+              </a>
             </div>
 
             <div className="space-y-4">
@@ -106,6 +123,10 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
             </div>
           </div>
         </div>
+      </div>
+
+      <div id="reviews" className="max-w-7xl mx-auto px-6">
+        <ProductReviews productId={id} />
       </div>
 
       <RecentProducts currentProductId={id} />

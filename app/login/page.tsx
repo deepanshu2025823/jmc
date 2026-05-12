@@ -3,20 +3,28 @@
 import { useState, useRef, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Sparkles, ArrowRight, ShieldCheck, Loader2, Mail, ArrowLeft } from "lucide-react"; 
+import { Sparkles, ArrowRight, ShieldCheck, Loader2, Mail, Phone, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import Link from "next/link"; 
+import Link from "next/link";
 import { toast } from "sonner";
+import { PhoneInput } from "@/components/phone-input";
+import { DEFAULT_COUNTRY } from "@/lib/countries";
+import { cn } from "@/lib/utils";
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/profile"; 
   
+  const [mode, setMode] = useState<"phone" | "email">("phone");
   const [identifier, setIdentifier] = useState("");
+  const [emailValue, setEmailValue] = useState("");
+  const [phoneIso, setPhoneIso] = useState(DEFAULT_COUNTRY.iso2);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneE164, setPhoneE164] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [isOtpStep, setIsOtpStep] = useState(false);
@@ -51,18 +59,33 @@ function LoginContent() {
   };
 
   const handleSendOTP = async () => {
-    if (!identifier) return toast.error("Enter your email or phone");
+    let target: string;
+    if (mode === "email") {
+      const trimmed = emailValue.trim();
+      if (!trimmed || !trimmed.includes("@")) {
+        return toast.error("Please enter a valid email address");
+      }
+      target = trimmed;
+    } else {
+      if (!phoneE164 || phoneNumber.length < 6) {
+        return toast.error("Please enter a valid phone number");
+      }
+      target = phoneE164;
+    }
+    setIdentifier(target);
     setLoading(true);
     try {
       const res = await fetch("/api/auth/otp", {
         method: "POST",
-        body: JSON.stringify({ identifier }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: target }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setIsOtpStep(true);
         toast.success("Verification code sent!");
       } else {
-        toast.error("Failed to send OTP. Please check your network.");
+        toast.error(data?.error || "Failed to send OTP. Please check your network.");
       }
     } catch {
       toast.error("Connection error");
@@ -170,7 +193,7 @@ function LoginContent() {
               {!isAdminFlow ? "Client Portal" : "Admin Login"}
             </h2>
             <p className="text-zinc-500 text-sm md:text-base">
-              {!isAdminFlow ? "Enter your email to receive a secure access code." : "Enter your credentials to proceed."}
+              {!isAdminFlow ? "Enter your phone or email to receive a secure access code." : "Enter your credentials to proceed."}
             </p>
           </div>
 
@@ -200,16 +223,65 @@ function LoginContent() {
               <div className="relative">
                 {!isOtpStep ? (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="space-y-3">
-                      <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Email or Phone Number</Label>
-                      <Input 
-                        type="text" 
-                        placeholder="client@example.com or +1234567890" 
-                        value={identifier} 
-                        onChange={(e) => setIdentifier(e.target.value)} 
-                        className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] focus:ring-[#50540b]/20 transition-all px-5" 
-                      />
+                    <div className="inline-flex w-full rounded-xl bg-zinc-100 p-1">
+                      <button
+                        type="button"
+                        onClick={() => setMode("phone")}
+                        className={cn(
+                          "flex-1 inline-flex items-center justify-center gap-2 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
+                          mode === "phone"
+                            ? "bg-white text-zinc-900 shadow-sm"
+                            : "text-zinc-500 hover:text-zinc-700"
+                        )}
+                      >
+                        <Phone className="h-3.5 w-3.5" /> Phone
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMode("email")}
+                        className={cn(
+                          "flex-1 inline-flex items-center justify-center gap-2 h-10 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
+                          mode === "email"
+                            ? "bg-white text-zinc-900 shadow-sm"
+                            : "text-zinc-500 hover:text-zinc-700"
+                        )}
+                      >
+                        <Mail className="h-3.5 w-3.5" /> Email
+                      </button>
                     </div>
+
+                    {mode === "phone" ? (
+                      <div className="space-y-3">
+                        <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                          Mobile Number
+                        </Label>
+                        <PhoneInput
+                          iso2={phoneIso}
+                          number={phoneNumber}
+                          onChange={({ iso2, number, e164 }) => {
+                            setPhoneIso(iso2);
+                            setPhoneNumber(number);
+                            setPhoneE164(e164);
+                          }}
+                          placeholder="98765 43210"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                          Email Address
+                        </Label>
+                        <Input
+                          type="email"
+                          autoComplete="email"
+                          placeholder="client@example.com"
+                          value={emailValue}
+                          onChange={(e) => setEmailValue(e.target.value)}
+                          className="h-14 rounded-xl bg-zinc-50 border-zinc-200 focus:border-[#50540b] focus:ring-[#50540b]/20 transition-all px-5"
+                        />
+                      </div>
+                    )}
+
                     <Button onClick={handleSendOTP} disabled={loading} className="w-full h-14 rounded-xl bg-zinc-900 hover:bg-[#50540b] text-white font-bold uppercase tracking-widest text-[10px] transition-all shadow-lg hover:shadow-xl mt-4">
                       {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <>Send Access Code <Mail className="ml-2 h-4 w-4" /></>}
                     </Button>

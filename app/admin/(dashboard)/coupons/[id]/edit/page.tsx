@@ -50,15 +50,58 @@ export default async function EditCouponPage({ params }: { params: Promise<{ id:
         </div>
 
         <div className="space-y-2">
-          <Label>Expiry Date</Label>
-          <Input 
-            name="expiresAt" 
-            type="date" 
-            defaultValue={new Date(coupon.expiresAt).toISOString().split('T')[0]} 
-            required 
+          <Label>Min Order Amount (₹) <span className="text-xs text-zinc-400 font-normal">— optional</span></Label>
+          <Input
+            name="minOrderAmount"
+            type="number"
+            min="0"
+            step="1"
+            defaultValue={coupon.minOrderAmount ? Number(coupon.minOrderAmount) : ""}
+            placeholder="e.g. 999"
             className="h-11"
           />
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Total Uses <span className="text-xs text-zinc-400 font-normal">— optional</span></Label>
+            <Input
+              name="usageLimit"
+              type="number"
+              min="1"
+              defaultValue={coupon.usageLimit ?? ""}
+              placeholder="∞"
+              className="h-11"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Per User <span className="text-xs text-zinc-400 font-normal">— optional</span></Label>
+            <Input
+              name="perUserLimit"
+              type="number"
+              min="1"
+              defaultValue={coupon.perUserLimit ?? ""}
+              placeholder="∞"
+              className="h-11"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Expiry Date</Label>
+          <Input
+            name="expiresAt"
+            type="date"
+            defaultValue={new Date(coupon.expiresAt).toISOString().split('T')[0]}
+            required
+            className="h-11"
+          />
+        </div>
+
+        <p className="text-xs text-zinc-500 bg-zinc-50 border border-zinc-100 rounded-lg p-3">
+          Used so far: <span className="font-bold text-zinc-700">{coupon.usageCount}</span>
+          {coupon.usageLimit ? ` of ${coupon.usageLimit}` : " redemptions"}
+        </p>
 
         <Button type="submit" className="w-full h-12 bg-zinc-900 text-white font-medium hover:bg-zinc-800 transition-colors">
           <Save className="h-4 w-4 mr-2" /> Save Changes

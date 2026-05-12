@@ -10,7 +10,8 @@ import {
   Ticket,
   BarChart3,
   Mail,
-  Zap
+  Zap,
+  ShoppingBag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,15 +31,25 @@ const routes = [
     icon: Package, 
     href: "/admin/products" 
   },
-  { 
-    label: "Orders", 
-    icon: ShoppingCart, 
-    href: "/admin/orders" 
+  {
+    label: "Orders",
+    icon: ShoppingCart,
+    href: "/admin/orders"
   },
-  { 
-    label: "Customer Leads", 
-    icon: Users, 
-    href: "/admin/leads" 
+  {
+    label: "Abandoned Carts",
+    icon: ShoppingBag,
+    href: "/admin/abandoned-carts"
+  },
+  {
+    label: "Users",
+    icon: Users,
+    href: "/admin/customers"
+  },
+  {
+    label: "Customer Leads",
+    icon: Users,
+    href: "/admin/leads"
   },
   { 
     label: "Newsletter", 

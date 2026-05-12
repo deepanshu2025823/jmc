@@ -51,7 +51,7 @@ function OrderSuccessContent() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/profile" className="w-full sm:w-auto">
+          <Link href={orderId ? `/orders/${orderId}` : "/profile"} className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto h-14 bg-zinc-900 text-white rounded-full font-bold uppercase text-[10px] tracking-widest px-8 shadow-lg hover:bg-[#50540b] transition-all">
               Track Order
             </Button>

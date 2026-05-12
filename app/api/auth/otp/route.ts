@@ -94,34 +94,92 @@ export async function POST(req: Request) {
       const accountSid = process.env.TWILIO_ACCOUNT_SID;
       const authToken = process.env.TWILIO_AUTH_TOKEN;
       const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
-      
+      const fromNumber = process.env.TWILIO_FROM_NUMBER;
+
       if (!accountSid || !authToken) {
-        throw new Error("Twilio credentials are not configured in environment variables.");
+        return NextResponse.json(
+          {
+            error:
+              "SMS service is not configured. Please contact support or use email login.",
+          },
+          { status: 503 }
+        );
       }
 
       let formattedPhone = targetIdentifier;
-      if (!formattedPhone.startsWith('+')) {
-        const digits = formattedPhone.replace(/\D/g, '');
-        // Default to India (+91) if exactly 10 digits are entered without a country code
+      if (!formattedPhone.startsWith("+")) {
+        const digits = formattedPhone.replace(/\D/g, "");
         formattedPhone = digits.length === 10 ? `+91${digits}` : `+${digits}`;
       }
 
-      const client = twilio(accountSid, authToken);
-      await client.messages.create({
+      // Basic E.164 sanity (between 8 and 15 digits after +)
+      const e164Test = /^\+\d{8,15}$/;
+      if (!e164Test.test(formattedPhone)) {
+        return NextResponse.json(
+          {
+            error:
+              "Invalid phone number format. Use country code + number (e.g. +91XXXXXXXXXX).",
+          },
+          { status: 400 }
+        );
+      }
+
+      const messagePayload: {
+        body: string;
+        to: string;
+        messagingServiceSid?: string;
+        from?: string;
+      } = {
         body: `Your JMC Secret Rituals secure access code is: ${otp}. It will gracefully expire in 10 minutes.`,
-        messagingServiceSid: messagingServiceSid,
         to: formattedPhone,
-      });
+      };
+
+      if (messagingServiceSid) {
+        messagePayload.messagingServiceSid = messagingServiceSid;
+      } else if (fromNumber) {
+        messagePayload.from = fromNumber;
+      } else {
+        return NextResponse.json(
+          {
+            error:
+              "SMS sender is not configured (set TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_NUMBER).",
+          },
+          { status: 503 }
+        );
+      }
+
+      try {
+        const client = twilio(accountSid, authToken);
+        await client.messages.create(messagePayload);
+      } catch (twilioErr) {
+        const tw = twilioErr as { code?: number; message?: string; status?: number };
+        console.error("Twilio send failed:", tw);
+        const baseMessage = tw?.message || "SMS could not be sent.";
+        const userMessage =
+          tw?.code === 21408 || tw?.code === 21610
+            ? "We can't send SMS to this country yet. Please log in with email instead."
+            : tw?.code === 21211
+            ? "That phone number doesn't look right. Please check the country code and digits."
+            : tw?.code === 21614
+            ? "Phone number is not a valid mobile number."
+            : process.env.NODE_ENV === "development"
+            ? `SMS error: ${baseMessage}`
+            : "Couldn't send SMS. Please try again or use email login.";
+        return NextResponse.json({ error: userMessage }, { status: 502 });
+      }
     }
 
     if (process.env.NODE_ENV === 'development') {
       console.log(`[DEV OTP GENERATED] For ${targetIdentifier}: ${otp}`);
     }
 
-    return NextResponse.json({ message: "OTP Sent successfully" }); 
-    
+    return NextResponse.json({ message: "OTP Sent successfully" });
   } catch (error) {
     console.error("OTP Error Detail:", error);
-    return NextResponse.json({ error: "Failed to send OTP email. Please try again." }, { status: 500 });
+    const message =
+      process.env.NODE_ENV === "development" && error instanceof Error
+        ? `OTP error: ${error.message}`
+        : "Failed to send OTP. Please try again or use a different method.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

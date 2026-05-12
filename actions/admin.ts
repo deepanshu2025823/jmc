@@ -110,18 +110,132 @@ export async function updateRazorpaySettings(data: { isEnabled: boolean, keyId: 
 
 export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
   try {
-    await prisma.order.update({
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const order = await prisma.order.findUnique({
       where: { id: orderId },
-      data: { status: newStatus },
+      select: {
+        status: true,
+        paidAt: true,
+        shippedAt: true,
+        deliveredAt: true,
+        cancelledAt: true,
+      },
     });
-    
-    revalidatePath("/admin/orders"); 
-    revalidatePath("/profile"); 
-    
+    if (!order) return { success: false, error: "Order not found" };
+
+    const now = new Date();
+    const data: Record<string, unknown> = { status: newStatus };
+    if (newStatus === "PAID" && !order.paidAt) data.paidAt = now;
+    if (newStatus === "SHIPPED" && !order.shippedAt) data.shippedAt = now;
+    if (newStatus === "DELIVERED" && !order.deliveredAt)
+      data.deliveredAt = now;
+    if (newStatus === "CANCELLED" && !order.cancelledAt)
+      data.cancelledAt = now;
+
+    await prisma.order.update({ where: { id: orderId }, data });
+
+    revalidatePath("/admin/orders");
+    revalidatePath("/profile");
+    revalidatePath(`/orders/${orderId}`);
+
     return { success: true };
   } catch (error) {
     console.error("Order Status Update Error:", error);
     return { success: false, error: "Failed to update status in database." };
+  }
+}
+
+export async function setOrderTracking(
+  orderId: string,
+  data: { trackingNumber?: string; courier?: string }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const trimmedTracking = data.trackingNumber?.trim() || null;
+    const trimmedCourier = data.courier?.trim() || null;
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        trackingNumber: trimmedTracking,
+        courier: trimmedCourier,
+      },
+    });
+
+    revalidatePath("/admin/orders");
+    revalidatePath("/profile");
+    revalidatePath(`/orders/${orderId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Set Order Tracking Error:", error);
+    return { success: false, error: "Failed to save tracking info" };
+  }
+}
+
+export async function cancelOrderByUser(orderId: string, reason?: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return { success: false, error: "Please log in" };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, role: true },
+    });
+    if (!user) return { success: false, error: "User not found" };
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { orderItems: { select: { productId: true, quantity: true } } },
+    });
+    if (!order) return { success: false, error: "Order not found" };
+
+    if (order.userId !== user.id && user.role !== "ADMIN") {
+      return { success: false, error: "Not authorized" };
+    }
+
+    if (order.status !== "PENDING") {
+      return {
+        success: false,
+        error: "Only pending orders can be cancelled. Contact support for help.",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: "CANCELLED",
+          cancelledAt: new Date(),
+          cancelReason: reason?.trim() || null,
+        },
+      });
+      for (const item of order.orderItems) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+    });
+
+    revalidatePath("/profile");
+    revalidatePath(`/orders/${orderId}`);
+    revalidatePath("/admin/orders");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Cancel Order Error:", error);
+    return { success: false, error: "Failed to cancel order" };
   }
 }
 

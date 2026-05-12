@@ -40,6 +40,20 @@ export default async function CouponsPage() {
               </div>
             </div>
             <div className="space-y-2">
+              <Label>Min Order Amount (₹) <span className="text-xs text-zinc-400 font-normal">— optional</span></Label>
+              <Input name="minOrderAmount" type="number" min="0" step="1" placeholder="e.g. 999" className="h-11" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Total Uses <span className="text-xs text-zinc-400 font-normal">— optional</span></Label>
+                <Input name="usageLimit" type="number" min="1" placeholder="∞" className="h-11" />
+              </div>
+              <div className="space-y-2">
+                <Label>Per User <span className="text-xs text-zinc-400 font-normal">— optional</span></Label>
+                <Input name="perUserLimit" type="number" min="1" placeholder="∞" className="h-11" />
+              </div>
+            </div>
+            <div className="space-y-2">
               <Label>Expiry Date</Label>
               <Input name="expiresAt" type="date" required className="h-11" />
             </div>
@@ -83,13 +97,34 @@ export default async function CouponsPage() {
                     <div className="h-12 w-12 bg-zinc-100 rounded-full flex items-center justify-center shrink-0">
                       {coupon.type === "PERCENTAGE" ? <Percent className="h-6 w-6 text-zinc-600" /> : <Banknote className="h-6 w-6 text-zinc-600" />}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-2xl font-black text-zinc-900">
                         {coupon.type === "PERCENTAGE" ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`}
                         <span className="text-xs font-normal text-zinc-500 ml-1">OFF</span>
                       </p>
                       <p className="text-[10px] text-zinc-400 flex items-center gap-1 mt-1 uppercase font-bold tracking-wider">
                         <Calendar className="h-3 w-3" /> Expires: {new Date(coupon.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric'})}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-zinc-100 grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <p className="text-[9px] uppercase font-bold tracking-wider text-zinc-400">Min order</p>
+                      <p className="text-xs font-bold text-zinc-700 mt-0.5">
+                        {coupon.minOrderAmount ? `₹${Number(coupon.minOrderAmount).toLocaleString("en-IN")}` : "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase font-bold tracking-wider text-zinc-400">Used</p>
+                      <p className="text-xs font-bold text-zinc-700 mt-0.5">
+                        {coupon.usageCount}{coupon.usageLimit ? ` / ${coupon.usageLimit}` : ""}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase font-bold tracking-wider text-zinc-400">Per user</p>
+                      <p className="text-xs font-bold text-zinc-700 mt-0.5">
+                        {coupon.perUserLimit ?? "∞"}
                       </p>
                     </div>
                   </div>

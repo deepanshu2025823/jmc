@@ -4,20 +4,27 @@ import { OrdersClient } from "./orders-client";
 export const dynamic = "force-dynamic";
 
 export default async function OrdersPage() {
-  const orders = await prisma.order.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: true,
-      orderItems: {
-        include: { product: true }
-      }
-    }
-  });
+  const [orders, settings] = await Promise.all([
+    prisma.order.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: true,
+        orderItems: {
+          include: { product: true },
+        },
+      },
+    }),
+    prisma.storeSettings.findFirst(),
+  ]);
 
   const safeOrders = orders.map(order => ({
     ...order,
     createdAt: order.createdAt.toISOString(),
     updatedAt: order.updatedAt.toISOString(),
+    paidAt: order.paidAt?.toISOString() ?? null,
+    shippedAt: order.shippedAt?.toISOString() ?? null,
+    deliveredAt: order.deliveredAt?.toISOString() ?? null,
+    cancelledAt: order.cancelledAt?.toISOString() ?? null,
     totalAmount: Number(order.totalAmount),
     orderItems: order.orderItems.map(item => ({
       ...item,
@@ -31,5 +38,10 @@ export default async function OrdersPage() {
     }))
   }));
 
-  return <OrdersClient orders={safeOrders} />;
+  return (
+    <OrdersClient
+      orders={safeOrders}
+      isShiprocketEnabled={settings?.isShiprocketEnabled ?? false}
+    />
+  );
 }

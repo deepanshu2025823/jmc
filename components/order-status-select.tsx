@@ -36,13 +36,15 @@ export function OrderStatusSelect({ orderId, currentStatus }: { orderId: string,
           ${status === 'PAID' ? 'bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-300' : ''}
           ${status === 'SHIPPED' ? 'bg-purple-50 text-purple-700 border-purple-200 hover:border-purple-300' : ''}
           ${status === 'DELIVERED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-300' : ''}
-          ${!['PENDING', 'PAID', 'SHIPPED', 'DELIVERED'].includes(status) ? 'bg-zinc-50 text-zinc-700 border-zinc-200' : ''}
+          ${status === 'CANCELLED' ? 'bg-rose-50 text-rose-700 border-rose-200 hover:border-rose-300' : ''}
+          ${!['PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'].includes(status) ? 'bg-zinc-50 text-zinc-700 border-zinc-200' : ''}
         `}
       >
         <option value="PENDING">PENDING</option>
         <option value="PAID">PAID</option>
         <option value="SHIPPED">SHIPPED</option>
         <option value="DELIVERED">DELIVERED</option>
+        <option value="CANCELLED">CANCELLED</option>
       </select>
       
       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">

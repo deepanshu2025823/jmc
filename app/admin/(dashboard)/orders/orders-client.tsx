@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ShoppingBag, Eye, Calendar, Trash2, Package, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderStatusSelect } from "@/components/order-status-select";
+import { OrderTrackingInput } from "@/components/order-tracking-input";
+import { ShiprocketPushButton } from "@/components/shiprocket-push-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { clearAllOrders } from "@/actions/admin";
@@ -22,6 +24,11 @@ export interface AdminOrder {
   totalAmount: number | string;
   status: string;
   createdAt: string | Date;
+  trackingNumber?: string | null;
+  courier?: string | null;
+  shiprocketOrderId?: string | null;
+  shiprocketShipmentId?: string | null;
+  paymentMethod?: string | null;
   user?: { name: string | null; email: string } | null;
   orderItems?: AdminOrderItem[];
 }
@@ -32,7 +39,13 @@ const formatDate = (dateString: string | Date) => {
   return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
 };
 
-export function OrdersClient({ orders }: { orders: AdminOrder[] }) {
+export function OrdersClient({
+  orders,
+  isShiprocketEnabled,
+}: {
+  orders: AdminOrder[];
+  isShiprocketEnabled: boolean;
+}) {
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -238,7 +251,41 @@ export function OrdersClient({ orders }: { orders: AdminOrder[] }) {
                     <p>Total Paid</p> <p className="text-[#B59461]">₹{Number(selectedOrder.totalAmount).toLocaleString()}</p>
                   </div>
                 </div>
-                
+
+                <div className="space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                    Shiprocket
+                  </p>
+                  <ShiprocketPushButton
+                    orderId={selectedOrder.id}
+                    isShiprocketEnabled={isShiprocketEnabled}
+                    shiprocketOrderId={selectedOrder.shiprocketOrderId ?? null}
+                    shiprocketShipmentId={
+                      selectedOrder.shiprocketShipmentId ?? null
+                    }
+                    awbCode={selectedOrder.trackingNumber ?? null}
+                    courier={selectedOrder.courier ?? null}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                    Manual Tracking Override
+                  </p>
+                  <OrderTrackingInput
+                    orderId={selectedOrder.id}
+                    currentTrackingNumber={selectedOrder.trackingNumber ?? null}
+                    currentCourier={selectedOrder.courier ?? null}
+                  />
+                  <p className="text-[11px] text-zinc-500">
+                    Use this when not using Shiprocket. Customer ko ye{" "}
+                    <code className="font-mono text-zinc-700">
+                      /orders/{selectedOrder.id.slice(-6).toUpperCase()}
+                    </code>{" "}
+                    tracking page pe dikhega.
+                  </p>
+                </div>
+
               </div>
             )}
           </div>

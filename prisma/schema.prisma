@@ -8,46 +8,69 @@ datasource db {
 }
 
 model User {
-  id         String    @id @default(uuid())
-  name       String?
-  email      String    @unique
-  password   String
-  role       Role      @default(USER)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  emailNotif Boolean   @default(true)
-  smsNotif   Boolean   @default(false)
-  dob        String?
-  gender     String?
-  phone      String?
-  addresses  Address[]
-  orders     Order[]
+  id                 String              @id @default(uuid())
+  name               String?
+  email              String              @unique
+  password           String
+  role               Role                @default(USER)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  emailNotif         Boolean             @default(true)
+  smsNotif           Boolean             @default(false)
+  dob                String?
+  gender             String?
+  phone              String?
+  addresses          Address[]
+  orders             Order[]
+  reviews            Review[]
+  wishlistItems      WishlistItem[]
+  redemptions        CouponRedemption[]
+  abandonedCheckouts AbandonedCheckout[]
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  name        String
-  slug        String      @unique
-  description String      @db.Text
-  price       Decimal     @db.Decimal(10, 2)
-  imageUrl    String?
-  images      Json?
-  stock       Int         @default(0)
-  category    String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  orderItems  OrderItem[]
+  id            String         @id @default(uuid())
+  name          String
+  slug          String         @unique
+  description   String         @db.Text
+  price         Decimal        @db.Decimal(10, 2)
+  imageUrl      String?
+  images        Json?
+  stock         Int            @default(0)
+  category      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  userId      String
-  totalAmount Decimal     @db.Decimal(10, 2)
-  status      OrderStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  user        User        @relation(fields: [userId], references: [id])
-  orderItems  OrderItem[]
+  id                   String      @id @default(uuid())
+  userId               String
+  totalAmount          Decimal     @db.Decimal(10, 2)
+  status               OrderStatus @default(PENDING)
+  paymentMethod        String      @default("COD")
+  trackingNumber       String?
+  courier              String?
+  cancelReason         String?     @db.Text
+  shippingName         String?
+  shippingPhone        String?
+  shippingEmail        String?
+  shippingAddress      String?     @db.Text
+  shippingCity         String?
+  shippingState        String?
+  shippingPincode      String?
+  shiprocketOrderId    String?
+  shiprocketShipmentId String?
+  paidAt               DateTime?
+  shippedAt            DateTime?
+  deliveredAt          DateTime?
+  cancelledAt          DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  user                 User        @relation(fields: [userId], references: [id])
+  orderItems           OrderItem[]
 
   @@index([userId], map: "Order_userId_fkey")
 }
@@ -66,23 +89,100 @@ model OrderItem {
 }
 
 model Coupon {
-  id            String   @id @default(uuid())
-  code          String   @unique
-  discountValue Int
-  type          String   @default("FIXED")
-  expiresAt     DateTime
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String             @id @default(uuid())
+  code           String             @unique
+  discountValue  Int
+  type           String             @default("FIXED")
+  expiresAt      DateTime
+  isActive       Boolean            @default(true)
+  minOrderAmount Decimal?           @db.Decimal(10, 2)
+  usageLimit     Int?
+  perUserLimit   Int?
+  usageCount     Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  redemptions    CouponRedemption[]
+}
+
+model CouponRedemption {
+  id        String   @id @default(uuid())
+  couponId  String
+  userId    String
+  orderId   String?
+  createdAt DateTime @default(now())
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([couponId])
+  @@index([userId])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  productId  String
+  userId     String
+  rating     Int
+  title      String?
+  body       String   @db.Text
+  isVerified Boolean  @default(false)
+  isApproved Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+}
+
+model AbandonedCheckout {
+  id              String    @id @default(uuid())
+  userId          String
+  email           String
+  phone           String?
+  itemsSnapshot   Json
+  itemsCount      Int
+  totalAmount     Decimal   @db.Decimal(10, 2)
+  couponCode      String?
+  reminderCount   Int       @default(0)
+  lastReminderAt  DateTime?
+  recoveredAt     DateTime?
+  recoveredOrderId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@index([recoveredAt])
+  @@index([lastReminderAt])
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
 }
 
 model StoreSettings {
-  id                String   @id @default(uuid())
-  isCodEnabled      Boolean  @default(true)
-  isRazorpayEnabled Boolean  @default(false)
-  razorpayKeyId     String?
-  razorpayKeySecret String?
-  updatedAt         DateTime @updatedAt
+  id                       String   @id @default(uuid())
+  isCodEnabled             Boolean  @default(true)
+  isRazorpayEnabled        Boolean  @default(false)
+  razorpayKeyId            String?
+  razorpayKeySecret        String?
+  isShiprocketEnabled      Boolean  @default(false)
+  shiprocketEmail          String?
+  shiprocketPassword       String?
+  shiprocketPickupLocation String?  @default("Primary")
+  shiprocketWebhookToken   String?
+  updatedAt                DateTime @updatedAt
 }
 
 model Newsletter {
@@ -116,4 +216,5 @@ enum OrderStatus {
   PAID
   SHIPPED
   DELIVERED
+  CANCELLED
 }

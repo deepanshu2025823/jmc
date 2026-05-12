@@ -19,6 +19,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useCartStore, type Product } from "@/hooks/use-cart-store";
 import { toast } from "sonner";
 import type { StorefrontProduct } from "@/types/storefront";
+import { CartDrawerOffers } from "@/components/cart-drawer-offers";
 
 const subscribe = () => () => {};
 const useIsClient = () =>
@@ -48,6 +49,7 @@ export function Header() {
   const addToCart = useCartStore((s) => s.addToCart);
   const removeFromCart = useCartStore((s) => s.removeFromCart);
   const removeFromWishlist = useCartStore((s) => s.removeFromWishlist);
+  const appliedCoupon = useCartStore((s) => s.appliedCoupon);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -88,6 +90,13 @@ export function Header() {
 
   const subtotal = cart.reduce((acc, item) =>
     acc + (Number(item.price) * (item.quantity || 1)), 0);
+
+  const discount = appliedCoupon
+    ? appliedCoupon.type === "PERCENTAGE"
+      ? Math.round((subtotal * appliedCoupon.discount) / 100)
+      : Math.min(appliedCoupon.discount, subtotal)
+    : 0;
+  const total = Math.max(0, subtotal - discount);
 
   const moveWishlistToCart = (item: Product) => {
     addToCart(item);
@@ -312,24 +321,41 @@ export function Header() {
               )}
             </div>
 
-            <div className="p-8 border-t bg-zinc-50/80 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-zinc-500 uppercase text-[10px] font-bold tracking-widest">Subtotal</span>
-                <span className="text-2xl font-serif text-zinc-900">₹{subtotal.toLocaleString()}</span>
+            {cart.length > 0 && <CartDrawerOffers />}
+
+            {cart.length > 0 && (
+              <div className="px-6 py-5 border-t bg-zinc-50/80 space-y-3">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-zinc-500 uppercase font-bold tracking-widest">Subtotal</span>
+                  <span className="text-zinc-700 font-medium">₹{subtotal.toLocaleString()}</span>
+                </div>
+                {appliedCoupon && discount > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-emerald-700 uppercase font-bold tracking-widest inline-flex items-center gap-1.5">
+                      Discount
+                      <span className="font-mono text-[10px] tracking-wider text-emerald-600">({appliedCoupon.code})</span>
+                    </span>
+                    <span className="text-emerald-700 font-bold">−₹{discount.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2 border-t border-zinc-200">
+                  <span className="text-zinc-900 uppercase text-[10px] font-bold tracking-widest">Total</span>
+                  <span className="text-2xl font-serif text-zinc-900">₹{total.toLocaleString()}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <Link href="/cart" className="w-full">
+                    <Button onClick={() => setCartOpen(false)} variant="outline" className="w-full rounded-full h-12 uppercase text-[10px] font-bold border-zinc-300">
+                      View Cart
+                    </Button>
+                  </Link>
+                  <Link href="/checkout" className="w-full">
+                    <Button onClick={() => setCartOpen(false)} className="w-full rounded-full h-12 uppercase text-[10px] font-black bg-zinc-900 text-white shadow-xl hover:bg-black transition-all">
+                      Checkout
+                    </Button>
+                  </Link>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Link href="/cart" className="w-full">
-                  <Button onClick={() => setCartOpen(false)} variant="outline" className="w-full rounded-full h-14 uppercase text-[10px] font-bold border-zinc-300">
-                    View Cart
-                  </Button>
-                </Link>
-                <Link href="/checkout" className="w-full">
-                  <Button onClick={() => setCartOpen(false)} className="w-full rounded-full h-14 uppercase text-[10px] font-black bg-zinc-900 text-white shadow-xl hover:bg-black transition-all">
-                    Checkout
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            )}
           </SheetContent>
         </Sheet>
 

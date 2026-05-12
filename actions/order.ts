@@ -30,7 +30,10 @@ export function useOrderActions() {
           shippingDetails: formData,
           items: cart,
           totalAmount: totalAmount,
-          paymentMethod: "COD",
+          paymentMethod:
+            formData.paymentMethod === "ONLINE" ? "ONLINE" : "COD",
+          isPaid: formData.isPaid === true,
+          coupon: appliedCoupon ? { code: appliedCoupon.code } : null,
         }),
       });
 

@@ -11,6 +11,14 @@ import { useState } from "react";
 import { useOrderActions } from "@/actions/order";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { PhoneInput } from "@/components/phone-input";
+import {
+  COUNTRIES,
+  DEFAULT_COUNTRY,
+  findCountryByDial,
+} from "@/lib/countries";
+import { logAbandonedCheckout } from "@/actions/abandoned";
+import { useEffect } from "react";
 
 export interface SavedAddress {
   id: string;
@@ -91,7 +99,56 @@ export default function CheckoutClient({
 
   const [firstName, setFirstName] = useState(userName.split(' ')[0] || "");
   const [lastName, setLastName] = useState(userName.split(' ').slice(1).join(' ') || "");
-  const [phone, setPhone] = useState(userPhone || "");
+
+  // Split saved phone into ISO + national digits for the picker.
+  const initialPhone = (() => {
+    const raw = (userPhone || "").trim();
+    if (!raw) {
+      return { iso: DEFAULT_COUNTRY.iso2, number: "", e164: "" };
+    }
+    if (raw.startsWith("+")) {
+      const digits = raw.slice(1).replace(/\D/g, "");
+      // Try matching the longest dial-code prefix (max 4 digits in our list).
+      for (let len = 4; len >= 1; len--) {
+        const prefix = digits.slice(0, len);
+        const match = COUNTRIES.find((c) => c.dial === prefix);
+        if (match) {
+          const local = digits.slice(len);
+          return { iso: match.iso2, number: local, e164: `+${digits}` };
+        }
+      }
+      return { iso: DEFAULT_COUNTRY.iso2, number: digits, e164: `+${digits}` };
+    }
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length === 10) {
+      return {
+        iso: DEFAULT_COUNTRY.iso2,
+        number: digits,
+        e164: `+${DEFAULT_COUNTRY.dial}${digits}`,
+      };
+    }
+    // Fallback: try to detect dial from leading digits.
+    for (let len = 4; len >= 1; len--) {
+      const prefix = digits.slice(0, len);
+      const match = findCountryByDial(prefix);
+      if (match) {
+        return {
+          iso: match.iso2,
+          number: digits.slice(len),
+          e164: `+${digits}`,
+        };
+      }
+    }
+    return {
+      iso: DEFAULT_COUNTRY.iso2,
+      number: digits,
+      e164: digits ? `+${DEFAULT_COUNTRY.dial}${digits}` : "",
+    };
+  })();
+
+  const [phoneIso, setPhoneIso] = useState(initialPhone.iso);
+  const [phoneNumber, setPhoneNumber] = useState(initialPhone.number);
+  const [phoneE164, setPhoneE164] = useState(initialPhone.e164);
   const [address, setAddress] = useState(defaultAddr?.street ?? "");
   const [city, setCity] = useState(defaultAddr?.city ?? "");
   const [state, setState] = useState(defaultAddr?.state ?? "");
@@ -105,9 +162,33 @@ export default function CheckoutClient({
   }
   const total = subtotal - discount;
 
+  // Log abandoned checkout snapshot (debounced) so we can email a reminder later.
+  useEffect(() => {
+    if (!cart.length) return;
+    const id = setTimeout(() => {
+      logAbandonedCheckout({
+        items: cart.map((it) => ({
+          id: it.id,
+          name: it.name,
+          price: Number(it.price),
+          imageUrl: it.imageUrl,
+          quantity: it.quantity || 1,
+        })),
+        totalAmount: total,
+        couponCode: appliedCoupon?.code ?? null,
+      }).catch(() => {});
+    }, 800);
+    return () => clearTimeout(id);
+  }, [cart, total, appliedCoupon]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
+    if (!phoneE164 || phoneNumber.length < 6) {
+      toast.error("Please enter a valid phone number with country code");
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
 
@@ -233,7 +314,17 @@ export default function CheckoutClient({
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Phone Number</label>
-                <Input name="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="+91 0000000000" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
+                <PhoneInput
+                  iso2={phoneIso}
+                  number={phoneNumber}
+                  onChange={({ iso2, number, e164 }) => {
+                    setPhoneIso(iso2);
+                    setPhoneNumber(number);
+                    setPhoneE164(e164);
+                  }}
+                  placeholder="98765 43210"
+                />
+                <input type="hidden" name="phone" value={phoneE164} required />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

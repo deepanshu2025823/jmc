@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { addToWishlistDB, removeFromWishlistDB } from '@/actions/wishlist';
 
 export interface Product {
   id: string;
@@ -20,6 +21,7 @@ interface CartStore {
   removeFromWishlist: (id: string) => void;
   wishlist: Product[];
   addToWishlist: (product: ProductInput) => void;
+  setWishlist: (items: ProductInput[]) => void;
   cart: Product[];
   appliedCoupon: AppliedCoupon | null;
   addToCart: (product: ProductInput) => void;
@@ -43,12 +45,19 @@ export const useCartStore = create<CartStore>((set) => ({
   isWishlistOpen: false,
   isCartOpen: false,
 
-  addToWishlist: (product) => set((state) => ({
-    wishlist: [...state.wishlist, { ...product, quantity: 1 }],
-  })),
+  addToWishlist: (product) => set((state) => {
+    if (state.wishlist.some((w) => w.id === product.id)) return state;
+    addToWishlistDB(product.id).catch(() => {});
+    return { wishlist: [...state.wishlist, { ...product, quantity: 1 }] };
+  }),
 
-  removeFromWishlist: (id) => set((state) => ({
-    wishlist: state.wishlist.filter((item) => item.id !== id),
+  removeFromWishlist: (id) => set((state) => {
+    removeFromWishlistDB(id).catch(() => {});
+    return { wishlist: state.wishlist.filter((item) => item.id !== id) };
+  }),
+
+  setWishlist: (items) => set(() => ({
+    wishlist: items.map((p) => ({ ...p, quantity: 1 })),
   })),
 
   addToCart: (product) => set((state) => {

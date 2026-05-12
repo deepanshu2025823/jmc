@@ -302,14 +302,19 @@ export function ProfileClient({ user }: { user: ProfileUser }) {
                         ))}
                       </div>
 
-                      <div className="mt-6 pt-6 border-t border-zinc-50 flex flex-row items-center justify-between">
+                      <div className="mt-6 pt-6 border-t border-zinc-50 flex flex-row items-center justify-between gap-3">
                         <div>
                            <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Total Paid</p>
                            <p className="text-xl md:text-2xl font-serif font-bold text-zinc-900 leading-none">₹{Number(order.totalAmount).toLocaleString()}</p>
                         </div>
-                        <Button onClick={() => openInvoice(order)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-[#50540b] hover:text-zinc-900 hover:bg-transparent p-0 flex items-center gap-1">
-                          View Invoice <ArrowRight className="h-3 w-3" />
-                        </Button>
+                        <div className="flex items-center gap-3">
+                          <Button onClick={() => openInvoice(order)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 hover:bg-transparent p-0 flex items-center gap-1">
+                            Invoice
+                          </Button>
+                          <Link href={`/orders/${order.id}`} className="text-[10px] font-black uppercase tracking-widest text-[#50540b] hover:text-zinc-900 flex items-center gap-1">
+                            Track <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   ))}
