@@ -1,18 +1,71 @@
-import { getServerSession } from "next-auth"; 
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"; 
+import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/header";
 import { TrustBadges } from "@/components/trust-badges";
 import { Star, ShieldCheck, Sparkles } from "lucide-react";
-import { AddToCartButton } from "@/components/add-to-cart-button"; 
-import { BuyNowButton } from "@/components/buy-now-button"; 
-import { AddToWishlistButton } from "@/components/add-to-wishlist-button"; 
+import { AddToCartButton } from "@/components/add-to-cart-button";
+import { BuyNowButton } from "@/components/buy-now-button";
+import { AddToWishlistButton } from "@/components/add-to-wishlist-button";
 import { ProductGallery } from "@/components/product-gallery";
 import { RecentProducts } from "@/components/recent-products";
 import { ProductReviews } from "@/components/product-reviews";
 import { getReviewStats } from "@/actions/review";
+import { RecentlyViewed } from "@/components/recently-viewed";
+import { RecentlyViewedTracker } from "@/components/recently-viewed-tracker";
+import { MobileStickyCta } from "@/components/mobile-sticky-cta";
+import { ProductShareButton } from "@/components/product-share-button";
+import { SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
+
+export async function generateMetadata(props: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await props.params;
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: {
+      name: true,
+      description: true,
+      imageUrl: true,
+      images: true,
+      category: true,
+    },
+  });
+  if (!product) return { title: "Product not found" };
+
+  const imageList = Array.isArray(product.images)
+    ? (product.images as unknown[]).filter(
+        (v): v is string => typeof v === "string"
+      )
+    : [];
+  const ogImage = product.imageUrl || imageList[0] || "/icon.png";
+
+  const description = (product.description || `${product.name} — luxury skincare ritual from ${SITE_NAME}.`)
+    .replace(/\s+/g, " ")
+    .slice(0, 160);
+
+  return {
+    title: product.name,
+    description,
+    alternates: { canonical: `${SITE_URL}/product/${id}` },
+    openGraph: {
+      type: "website",
+      title: `${product.name} | ${SITE_NAME}`,
+      description,
+      url: `${SITE_URL}/product/${id}`,
+      images: [{ url: absoluteUrl(ogImage), alt: product.name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | ${SITE_NAME}`,
+      description,
+      images: [absoluteUrl(ogImage)],
+    },
+  };
+}
 
 export default async function ProductPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -37,10 +90,56 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
       : []),
   };
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.images.length > 0
+      ? product.images.map((src) => absoluteUrl(src))
+      : product.imageUrl
+      ? [absoluteUrl(product.imageUrl)]
+      : undefined,
+    sku: rawProduct.slug,
+    brand: { "@type": "Brand", name: SITE_NAME },
+    category: product.category || undefined,
+    offers: {
+      "@type": "Offer",
+      url: `${SITE_URL}/product/${id}`,
+      priceCurrency: "INR",
+      price: product.price.toFixed(2),
+      availability:
+        product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    ...(reviewStats.count > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: reviewStats.average.toFixed(2),
+        reviewCount: reviewStats.count,
+        bestRating: "5",
+        worstRating: "1",
+      },
+    }),
+  };
+
   return (
     <main className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <Header />
-      
+
+      <RecentlyViewedTracker
+        id={product.id}
+        name={product.name}
+        price={product.price}
+        imageUrl={product.imageUrl}
+      />
+
       <div className="max-w-7xl mx-auto px-6 pt-24 lg:pt-36 pb-20">
         <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-8 lg:mb-12">
           <Link href="/" className="hover:text-black">Home</Link>
@@ -109,9 +208,16 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
               <AddToCartButton product={product} />
 
               <BuyNowButton product={product} isUserLoggedIn={isUserLoggedIn} />
-              
-              {/* HUMNE PURANA STATIC BUTTON HATA KAR NAYA COMPONENT LAGA DIYA HAI */}
-              <AddToWishlistButton product={product} />
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <AddToWishlistButton product={product} />
+                </div>
+                <ProductShareButton
+                  productName={product.name}
+                  productUrl={`${SITE_URL}/product/${id}`}
+                />
+              </div>
             </div>
 
             <div className="pt-4 space-y-4">
@@ -129,9 +235,13 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
         <ProductReviews productId={id} />
       </div>
 
+      <RecentlyViewed excludeId={id} />
+
       <RecentProducts currentProductId={id} />
 
       <TrustBadges />
+
+      <MobileStickyCta product={product} />
     </main>
   );
 }

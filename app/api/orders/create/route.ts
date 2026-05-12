@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { markCheckoutRecovered } from "@/actions/abandoned";
+import { createNotification, checkLowStock } from "@/lib/notifications";
 
 interface CartItem {
   id: string;
@@ -149,6 +150,20 @@ export async function POST(req: Request) {
     }
 
     await markCheckoutRecovered(user.id, order.id);
+
+    await createNotification({
+      type: "ORDER",
+      title: "New order received",
+      message: `${order.shippingName || user.email} placed an order worth ₹${Math.round(
+        totalAmount
+      ).toLocaleString("en-IN")} (${items.length} item${
+        items.length === 1 ? "" : "s"
+      })`,
+      link: `/admin/orders`,
+      metadata: { orderId: order.id, amount: totalAmount },
+    });
+
+    await checkLowStock(items.map((it) => it.id));
 
     return NextResponse.json({ success: true, id: order.id });
   } catch (error) {

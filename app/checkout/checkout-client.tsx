@@ -5,7 +5,7 @@ import { useCartStore, type Product } from "@/hooks/use-cart-store";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShieldCheck, ArrowLeft, Truck, PackageCheck, AlertCircle, CreditCard, Loader2, MapPin } from "lucide-react";
+import { ShieldCheck, ArrowLeft, Truck, PackageCheck, AlertCircle, CreditCard, Loader2, MapPin, Check, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useOrderActions } from "@/actions/order";
@@ -153,6 +153,11 @@ export default function CheckoutClient({
   const [city, setCity] = useState(defaultAddr?.city ?? "");
   const [state, setState] = useState(defaultAddr?.state ?? "");
   const [pincode, setPincode] = useState(defaultAddr?.pincode ?? "");
+  const [pincodeStatus, setPincodeStatus] = useState<
+    "idle" | "loading" | "ok" | "error"
+  >("idle");
+  const [pincodeError, setPincodeError] = useState<string | null>(null);
+  const [pincodeArea, setPincodeArea] = useState<string | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddr?.id ?? "new");
 
   const subtotal = cart.reduce((acc, item) => acc + (Number(item.price) * (item.quantity || 1)), 0);
@@ -161,6 +166,57 @@ export default function CheckoutClient({
     discount = appliedCoupon.type === "FIXED" ? appliedCoupon.discount : (subtotal * appliedCoupon.discount) / 100;
   }
   const total = subtotal - discount;
+
+  // Pincode → city/state auto-fill via India Post lookup.
+  useEffect(() => {
+    const digits = pincode.replace(/\D/g, "");
+    let cancelled = false;
+
+    const timer = setTimeout(async () => {
+      if (cancelled) return;
+      if (digits.length !== 6) {
+        setPincodeStatus("idle");
+        setPincodeError(null);
+        setPincodeArea(null);
+        return;
+      }
+
+      setPincodeStatus("loading");
+      setPincodeError(null);
+
+      try {
+        const res = await fetch(`/api/pincode/${digits}`);
+        const data = (await res.json()) as {
+          ok: boolean;
+          city?: string;
+          state?: string;
+          area?: string;
+          error?: string;
+        };
+        if (cancelled) return;
+        if (!res.ok || !data.ok) {
+          setPincodeStatus("error");
+          setPincodeError(data.error || "Pincode not found");
+          setPincodeArea(null);
+          return;
+        }
+        if (data.city) setCity(data.city);
+        if (data.state) setState(data.state);
+        setPincodeArea(data.area ?? null);
+        setPincodeStatus("ok");
+      } catch {
+        if (!cancelled) {
+          setPincodeStatus("error");
+          setPincodeError("Lookup failed");
+        }
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [pincode]);
 
   // Log abandoned checkout snapshot (debounced) so we can email a reminder later.
   useEffect(() => {
@@ -332,9 +388,50 @@ export default function CheckoutClient({
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Street Address</label>
                   <Input name="address" value={address} onChange={e => setAddress(e.target.value)} required placeholder="Apartment, suite, etc." className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
                 </div>
+                <div className="relative">
+                  <Input
+                    name="pincode"
+                    value={pincode}
+                    onChange={(e) =>
+                      setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    maxLength={6}
+                    required
+                    placeholder="Pincode"
+                    className={cn(
+                      "rounded-2xl h-14 border-zinc-100 bg-zinc-50/50 pr-12",
+                      pincodeStatus === "error" &&
+                        "border-rose-300 bg-rose-50/40",
+                      pincodeStatus === "ok" &&
+                        "border-emerald-300 bg-emerald-50/40"
+                    )}
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    {pincodeStatus === "loading" && (
+                      <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                    )}
+                    {pincodeStatus === "ok" && (
+                      <Check className="h-4 w-4 text-emerald-600" />
+                    )}
+                    {pincodeStatus === "error" && (
+                      <X className="h-4 w-4 text-rose-500" />
+                    )}
+                  </div>
+                  {pincodeStatus === "ok" && pincodeArea && (
+                    <p className="absolute -bottom-5 left-3 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                      {pincodeArea}
+                    </p>
+                  )}
+                  {pincodeStatus === "error" && pincodeError && (
+                    <p className="absolute -bottom-5 left-3 text-[10px] font-bold uppercase tracking-wider text-rose-600">
+                      {pincodeError}
+                    </p>
+                  )}
+                </div>
                 <Input name="city" value={city} onChange={e => setCity(e.target.value)} required placeholder="City" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
                 <Input name="state" value={state} onChange={e => setState(e.target.value)} required placeholder="State" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
-                <Input name="pincode" value={pincode} onChange={e => setPincode(e.target.value)} required placeholder="Pincode" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
               </div>
 
               <div className="pt-10 border-t border-zinc-50 mt-10">

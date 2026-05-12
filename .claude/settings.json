@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"/Users/user/Downloads/jmc/app/orders/[id]/invoice\")",
+      "Bash(npx tsc *)",
+      "Bash(echo \"TSC: $?\")",
+      "Bash(npx eslint *)",
+      "Bash(echo \"ESLINT: $?\")",
+      "Bash(npx prisma *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npm run *)"
+    ],
+    "additionalDirectories": [
+      "/Users/user/Downloads/jmc/app/orders/[id]"
+    ]
+  }
+}

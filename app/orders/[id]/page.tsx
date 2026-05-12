@@ -13,6 +13,7 @@ import {
   XCircle,
   ArrowLeft,
   Sparkles,
+  FileText,
 } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { Header } from "@/components/header";
@@ -395,12 +396,18 @@ export default async function OrderTrackingPage({
           </div>
         </div>
 
-        {/* Cancel button (only for PENDING) */}
-        {order.status === "PENDING" && (
-          <div className="mt-6">
+        {/* Actions */}
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
+          <Link
+            href={`/orders/${order.id}/invoice`}
+            className="inline-flex items-center justify-center gap-2 h-11 rounded-full border border-zinc-200 bg-white hover:bg-zinc-50 px-5 text-[10px] font-bold uppercase tracking-widest text-zinc-700"
+          >
+            <FileText className="h-4 w-4" /> Download invoice
+          </Link>
+          {order.status === "PENDING" && (
             <CancelOrderButton orderId={order.id} />
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Help footer */}
         <div className="mt-8 text-center text-xs text-zinc-400">

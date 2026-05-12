@@ -1,6 +1,7 @@
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { MobileSidebar } from "@/components/mobile-sidebar";
 import { ProfileDropdown } from "@/components/profile-dropdown";
+import { NotificationBell } from "@/components/notification-bell";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
@@ -33,7 +34,8 @@ export default async function AdminLayout({
             </h2>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            <NotificationBell />
             <ProfileDropdown user={session?.user} />
           </div>
         </header>

@@ -136,6 +136,19 @@ model Review {
   @@index([userId])
 }
 
+model Notification {
+  id        String   @id @default(uuid())
+  type      String
+  title     String
+  message   String   @db.Text
+  link      String?
+  isRead    Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([isRead, createdAt])
+}
+
 model AbandonedCheckout {
   id              String    @id @default(uuid())
   userId          String

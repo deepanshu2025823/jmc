@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ShoppingBag, Eye, Calendar, Trash2, Package, User } from "lucide-react";
+import { ShoppingBag, Eye, Calendar, Trash2, Package, User, FileText } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { OrderStatusSelect } from "@/components/order-status-select";
 import { OrderTrackingInput } from "@/components/order-tracking-input";
@@ -245,11 +246,18 @@ export function OrdersClient({
 
                 <div className="border border-zinc-100 rounded-2xl p-5 space-y-3 bg-[#fafafa]">
                   <div className="flex justify-between items-center text-sm font-bold text-zinc-500">
-                    <p>Payment Method</p> <p className="text-zinc-900 uppercase">COD</p>
+                    <p>Payment Method</p> <p className="text-zinc-900 uppercase">{selectedOrder.paymentMethod || "COD"}</p>
                   </div>
                   <div className="flex justify-between items-center text-xl font-serif font-black text-zinc-900 pt-4 border-t border-zinc-200">
                     <p>Total Paid</p> <p className="text-[#B59461]">₹{Number(selectedOrder.totalAmount).toLocaleString()}</p>
                   </div>
+                  <Link
+                    href={`/orders/${selectedOrder.id}/invoice`}
+                    target="_blank"
+                    className="inline-flex items-center justify-center gap-2 w-full h-10 rounded-lg bg-white border border-zinc-200 hover:border-zinc-900 text-zinc-700 text-[10px] font-bold uppercase tracking-widest"
+                  >
+                    <FileText className="h-3.5 w-3.5" /> View / Print Invoice
+                  </Link>
                 </div>
 
                 <div className="space-y-3">

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Header } from "@/components/header";
-import { User, Package, Calendar, Clock, ArrowRight, ShieldCheck, ShoppingBag, MapPin, Bell, Printer } from "lucide-react";
+import { User, Package, Calendar, Clock, ArrowRight, ShieldCheck, ShoppingBag, MapPin, Bell } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,6 @@ const formatDate = (dateString: string) => {
 
 export function ProfileClient({ user }: { user: ProfileUser }) {
   const [activeSheet, setActiveSheet] = useState<"invoice" | "addresses" | "notifications" | "profile" | null>(null);
-  const [selectedOrder, setSelectedOrder] = useState<ProfileOrder | null>(null);
   const [mounted, setMounted] = useState(false); 
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState(user);
@@ -88,11 +87,6 @@ export function ProfileClient({ user }: { user: ProfileUser }) {
     }
   }, [userData]);
 
-  const openInvoice = (order: ProfileOrder) => {
-    setSelectedOrder(order);
-    setActiveSheet("invoice");
-  };
-  
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -308,9 +302,9 @@ export function ProfileClient({ user }: { user: ProfileUser }) {
                            <p className="text-xl md:text-2xl font-serif font-bold text-zinc-900 leading-none">₹{Number(order.totalAmount).toLocaleString()}</p>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Button onClick={() => openInvoice(order)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 hover:bg-transparent p-0 flex items-center gap-1">
+                          <Link href={`/orders/${order.id}/invoice`} className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 flex items-center gap-1">
                             Invoice
-                          </Button>
+                          </Link>
                           <Link href={`/orders/${order.id}`} className="text-[10px] font-black uppercase tracking-widest text-[#50540b] hover:text-zinc-900 flex items-center gap-1">
                             Track <ArrowRight className="h-3 w-3" />
                           </Link>
@@ -324,56 +318,6 @@ export function ProfileClient({ user }: { user: ProfileUser }) {
           </div>
         </div>
       </div>
-
-      <Sheet open={activeSheet === "invoice"} onOpenChange={(o) => !o && setActiveSheet(null)}>
-        <SheetContent aria-describedby={undefined} className="w-full sm:max-w-lg p-0 border-none shadow-2xl bg-white flex flex-col z-[110]">
-          <SheetHeader className="p-8 border-b border-zinc-100 bg-[#fafafa]">
-            <div className="flex justify-between items-center">
-              <SheetTitle className="font-serif text-3xl font-bold text-zinc-900">Receipt</SheetTitle>
-              <Button onClick={() => window.print()} variant="outline" size="sm" className="rounded-full border-zinc-200">
-                <Printer className="h-4 w-4 mr-2" /> Print
-              </Button>
-            </div>
-            {selectedOrder && <p className="text-xs text-zinc-500 font-mono mt-2">Ref: #{selectedOrder.id.toUpperCase()}</p>}
-          </SheetHeader>
-          <div className="flex-1 p-8 overflow-y-auto">
-            {selectedOrder && (
-              <div className="space-y-8">
-                <div className="flex justify-between items-end border-b border-dashed border-zinc-200 pb-8">
-                  <div>
-                    <h3 className="font-serif text-xl font-bold text-[#50540b]">JMC Secret Rituals</h3>
-                    <p className="text-xs text-zinc-500 mt-1">Luxury Skincare Expert</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Date</p>
-                    <p className="text-sm font-bold text-zinc-900">{formatDate(selectedOrder.createdAt)}</p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Items Billed</p>
-                  {selectedOrder.orderItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center">
-                      <p className="text-sm font-bold text-zinc-700">{item.product.name} <span className="text-zinc-400 text-xs ml-2">x{item.quantity}</span></p>
-                      <p className="text-sm font-bold text-zinc-900">₹{Number(item.price).toLocaleString()}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t border-zinc-100 pt-6 space-y-3">
-                  <div className="flex justify-between items-center text-sm font-bold text-zinc-500">
-                    <p>Subtotal</p> <p>₹{Number(selectedOrder.totalAmount).toLocaleString()}</p>
-                  </div>
-                  <div className="flex justify-between items-center text-xl font-serif font-black text-zinc-900 pt-3 border-t border-zinc-100">
-                    <p>Total Paid</p> <p>₹{Number(selectedOrder.totalAmount).toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="bg-[#F9F6F0] p-4 rounded-xl text-center mt-10">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#50540b]">Thank you for your purchase</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
 
       <Sheet open={activeSheet === "profile"} onOpenChange={(o) => !o && setActiveSheet(null)}>
         <SheetContent aria-describedby={undefined} className="w-full sm:max-w-md border-none shadow-2xl p-8 z-[110]">

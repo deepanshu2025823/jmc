@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { OrderStatus } from "@prisma/client";
+import { createNotification } from "@/lib/notifications";
 
 export interface ReviewItem {
   id: string;
@@ -150,7 +151,7 @@ export async function createReview(
 
   const product = await prisma.product.findUnique({
     where: { id: productId },
-    select: { id: true },
+    select: { id: true, name: true },
   });
   if (!product) return { success: false, error: "Product not found" };
 
@@ -165,8 +166,9 @@ export async function createReview(
     select: { id: true },
   });
 
+  let review;
   try {
-    await prisma.review.create({
+    review = await prisma.review.create({
       data: {
         productId,
         userId: user.id,
@@ -187,6 +189,14 @@ export async function createReview(
     }
     throw err;
   }
+
+  await createNotification({
+    type: "REVIEW",
+    title: rating <= 2 ? "Low-rated review posted" : "New product review",
+    message: `${review.rating}★ on "${product.name}" — "${body.slice(0, 80)}${body.length > 80 ? "…" : ""}"`,
+    link: `/product/${productId}#reviews`,
+    metadata: { reviewId: review.id, productId, rating: review.rating },
+  });
 
   revalidatePath(`/product/${productId}`);
   return { success: true };
