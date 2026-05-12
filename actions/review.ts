@@ -6,6 +6,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
 import { OrderStatus } from "@prisma/client";
 import { createNotification } from "@/lib/notifications";
+import { rateLimit } from "@/lib/rate-limit";
 
 export interface ReviewItem {
   id: string;
@@ -148,6 +149,19 @@ export async function createReview(
     select: { id: true },
   });
   if (!user) return { success: false, error: "User not found" };
+
+  const limit = rateLimit({
+    bucket: "review:create",
+    identifier: user.id,
+    max: 5,
+    windowSec: 3600,
+  });
+  if (!limit.ok) {
+    return {
+      success: false,
+      error: `Slow down — you can post another review in ${Math.ceil(limit.retryAfter / 60)} min`,
+    };
+  }
 
   const product = await prisma.product.findUnique({
     where: { id: productId },

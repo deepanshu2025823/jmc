@@ -43,6 +43,9 @@ export function useOrderActions() {
         toast.success("Order Placed Successfully!");
         clearCart();
         router.push(`/order-success?id=${data.id}`);
+      } else if (response.status === 409) {
+        // Atomic stock check failed — server detected the conflict.
+        toast.error(data.error || "Some items just went out of stock.");
       } else {
         throw new Error(data.error || "Failed to place order");
       }

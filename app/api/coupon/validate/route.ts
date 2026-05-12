@@ -2,9 +2,23 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { rateLimit, rateLimitHeaders, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
+    const limit = rateLimit({
+      bucket: "coupon-validate",
+      identifier: getClientIp(req),
+      max: 20,
+      windowSec: 60,
+    });
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: "Too many coupon attempts. Try again in a moment." },
+        { status: 429, headers: rateLimitHeaders(limit) }
+      );
+    }
+
     const body = await req.json();
     const code = typeof body?.code === "string" ? body.code.trim() : "";
     const subtotal =

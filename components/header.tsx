@@ -170,6 +170,7 @@ export function Header() {
             <Link href="/about" className="hover:text-black transition-colors font-bold">About Us</Link>
             <Link href="/bestsellers" className="hover:text-black transition-colors font-bold">Bestsellers</Link>
             <Link href="/new-arrivals" className="hover:text-black transition-colors font-bold">New Arrivals</Link>
+            <Link href="/bundles" className="hover:text-black transition-colors font-bold">Bundles</Link>
           </nav>
 
           <Link href="/" className="group flex items-center gap-2 relative z-[101]">

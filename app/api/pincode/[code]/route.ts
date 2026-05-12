@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimit, rateLimitHeaders, getClientIp } from "@/lib/rate-limit";
 
 /**
  * Proxies the free India Post pincode API.
@@ -29,9 +30,22 @@ interface UpstreamResponse {
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ code: string }> }
 ) {
+  const limit = rateLimit({
+    bucket: "pincode",
+    identifier: getClientIp(req),
+    max: 30,
+    windowSec: 60,
+  });
+  if (!limit.ok) {
+    return NextResponse.json(
+      { ok: false, error: "Too many lookups. Slow down a bit." },
+      { status: 429, headers: rateLimitHeaders(limit) }
+    );
+  }
+
   const { code } = await ctx.params;
   const pincode = code.replace(/\D/g, "");
 

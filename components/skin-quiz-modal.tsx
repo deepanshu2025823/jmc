@@ -1,9 +1,13 @@
 "use client";
 import { useState } from "react";
-import { X, Loader2, CheckCircle2, ArrowRight, User, Mail } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { X, Loader2, CheckCircle2, ArrowRight, User, Mail, ShoppingBag, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { sendQuizResults, type QuizAiResult } from "@/actions/newsletter";
+import { useCartStore } from "@/hooks/use-cart-store";
+import { toast } from "sonner";
 
 type Answers = Record<string, string>;
 
@@ -20,7 +24,42 @@ export function SkinQuizModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
   const [answers, setAnswers] = useState<Answers>({});
   const [result, setResult] = useState<QuizAiResult | null>(null);
 
+  const addToCart = useCartStore((s) => s.addToCart);
+  const setCartOpen = useCartStore((s) => s.setCartOpen);
+
   if (!isOpen) return null;
+
+  const inr = (n: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(n);
+
+  const addAllRecommended = () => {
+    if (!result?.recommendedProducts?.length) return;
+    result.recommendedProducts.forEach((p) =>
+      addToCart({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        imageUrl: p.imageUrl,
+      })
+    );
+    toast.success("Ritual added to your bag");
+    onClose();
+    setTimeout(() => setCartOpen(true), 150);
+  };
+
+  const addOne = (p: NonNullable<QuizAiResult["recommendedProducts"]>[number]) => {
+    addToCart({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      imageUrl: p.imageUrl,
+    });
+    toast.success(`${p.name} added`);
+  };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,17 +81,22 @@ export function SkinQuizModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
     try {
       const res = await fetch("/api/skin-quiz", {
         method: "POST",
-        body: JSON.stringify({ answers: finalAnswers }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answers: finalAnswers,
+          name: userData.name,
+          email: userData.email,
+        }),
       });
       const aiData = (await res.json()) as QuizAiResult;
       setResult(aiData);
 
-      // Send Emails
+      // Send Emails (with product cards included)
       await sendQuizResults(userData, aiData);
 
       setCurrentStep("result");
     } catch {
-      alert("Something went wrong. Try again.");
+      toast.error("Something went wrong. Try again.");
       onClose();
     }
   };
@@ -129,11 +173,13 @@ export function SkinQuizModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           )}
 
           {currentStep === "result" && result && (
-            <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar">
               <div className="text-center space-y-2">
                 <CheckCircle2 className="h-12 w-12 text-[#B59461] mx-auto" />
                 <h2 className="text-3xl font-serif text-zinc-900">Your AI Ritual</h2>
+                <p className="text-xs text-zinc-500">Sent to your email too.</p>
               </div>
+
               <div className="bg-[#F9F6F0] p-6 rounded-3xl border border-[#B59461]/20 space-y-4">
                 <div className="border-b border-[#B59461]/10 pb-4">
                   <p className="text-[10px] font-bold uppercase text-zinc-400">Skin Profile</p>
@@ -147,9 +193,82 @@ export function SkinQuizModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                     </p>
                   ))}
                 </div>
+                {result.expertAdvice && (
+                  <p className="text-xs italic text-zinc-500 pt-2 border-t border-[#B59461]/10">
+                    &ldquo;{result.expertAdvice}&rdquo;
+                  </p>
+                )}
               </div>
-              <Button onClick={onClose} className="w-full bg-zinc-900 h-14 rounded-full text-white font-bold">
-                Done & Save
+
+              {result.recommendedProducts && result.recommendedProducts.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-3.5 w-3.5 text-[#B59461]" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-700">
+                      Recommended for you
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    {result.recommendedProducts.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center gap-3 rounded-2xl border border-zinc-100 bg-white p-3"
+                      >
+                        <Link
+                          href={`/product/${p.id}`}
+                          onClick={onClose}
+                          className="relative h-14 w-14 rounded-xl overflow-hidden bg-[#F9F6F0] shrink-0"
+                        >
+                          {p.imageUrl && (
+                            <Image
+                              src={p.imageUrl}
+                              alt={p.name}
+                              fill
+                              sizes="56px"
+                              className="object-cover"
+                            />
+                          )}
+                        </Link>
+                        <div className="flex-1 min-w-0">
+                          <Link href={`/product/${p.id}`} onClick={onClose}>
+                            <p className="text-sm font-bold text-zinc-900 truncate leading-tight">
+                              {p.name}
+                            </p>
+                          </Link>
+                          {p.category && (
+                            <p className="text-[9px] uppercase tracking-widest text-zinc-400 mt-0.5">
+                              {p.category}
+                            </p>
+                          )}
+                          <p className="text-sm font-bold text-[#B59461] mt-0.5">
+                            {inr(p.price)}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => addOne(p)}
+                          className="h-10 px-3 rounded-lg bg-zinc-900 hover:bg-black text-white text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5 shrink-0"
+                        >
+                          <ShoppingBag className="h-3.5 w-3.5" /> Add
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    onClick={addAllRecommended}
+                    className="w-full bg-[#B59461] hover:bg-[#967a4f] h-12 rounded-full text-white font-bold uppercase text-xs tracking-widest"
+                  >
+                    <ShoppingBag className="h-4 w-4 mr-2" /> Add full ritual to bag
+                  </Button>
+                </div>
+              )}
+
+              <Button
+                onClick={onClose}
+                variant="outline"
+                className="w-full h-12 rounded-full border-zinc-200 font-bold uppercase text-[10px] tracking-widest"
+              >
+                Done
               </Button>
             </div>
           )}

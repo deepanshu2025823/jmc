@@ -43,6 +43,7 @@ model Product {
   orderItems    OrderItem[]
   reviews       Review[]
   wishlistItems WishlistItem[]
+  bundleItems   BundleItem[]
 }
 
 model Order {
@@ -136,6 +137,22 @@ model Review {
   @@index([userId])
 }
 
+model SkinQuizSubmission {
+  id                    String   @id @default(uuid())
+  email                 String
+  name                  String?
+  userId                String?
+  answers               Json
+  skinType              String
+  routine               Json
+  expertAdvice          String?  @db.Text
+  recommendedProductIds Json
+  createdAt             DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
 model Notification {
   id        String   @id @default(uuid())
   type      String
@@ -169,6 +186,35 @@ model AbandonedCheckout {
   @@unique([userId])
   @@index([recoveredAt])
   @@index([lastReminderAt])
+}
+
+model Bundle {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String       @db.Text
+  imageUrl    String?
+  bundlePrice Decimal      @db.Decimal(10, 2)
+  isActive    Boolean      @default(true)
+  isFeatured  Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  items       BundleItem[]
+
+  @@index([isActive])
+}
+
+model BundleItem {
+  id        String  @id @default(uuid())
+  bundleId  String
+  productId String
+  quantity  Int     @default(1)
+  bundle    Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleId, productId])
+  @@index([bundleId])
+  @@index([productId])
 }
 
 model WishlistItem {

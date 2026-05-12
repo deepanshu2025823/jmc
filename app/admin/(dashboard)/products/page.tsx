@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Edit, PackageOpen, ImageIcon } from "lucide-react";
+import { Plus, Edit, PackageOpen, ImageIcon, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { deleteProduct } from "@/actions/product";
 import { DeleteProductButton } from "@/components/delete-product-button"; 
@@ -29,11 +29,18 @@ export default async function ProductsPage() {
           <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight text-zinc-900">Products Inventory</h1>
           <p className="text-sm text-zinc-500 mt-1">Manage your luxury skincare products catalog.</p>
         </div>
-        <Link href="/admin/products/new">
-          <Button className="w-full sm:w-auto bg-zinc-900 hover:bg-[#B59461] text-white gap-2 shadow-md rounded-full px-6 font-bold text-xs uppercase tracking-widest transition-colors duration-300">
-            <Plus className="h-4 w-4" /> Add New Product
-          </Button>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+          <Link href="/admin/products/import" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto gap-2 rounded-full px-6 font-bold text-xs uppercase tracking-widest border-zinc-200">
+              <UploadCloud className="h-4 w-4" /> Bulk import
+            </Button>
+          </Link>
+          <Link href="/admin/products/new" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto bg-zinc-900 hover:bg-[#B59461] text-white gap-2 shadow-md rounded-full px-6 font-bold text-xs uppercase tracking-widest transition-colors duration-300">
+              <Plus className="h-4 w-4" /> Add New Product
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {products.length === 0 ? (

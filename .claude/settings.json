@@ -9,10 +9,12 @@
       "Bash(npx prisma *)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(npm run *)",
-      "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(24\\).toString\\('hex'\\)\\)\")"
+      "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(24\\).toString\\('hex'\\)\\)\")",
+      "Bash(mkdir -p \"/Users/user/Downloads/jmc/app/admin/\\(dashboard\\)/bundles/new\" \"/Users/user/Downloads/jmc/app/admin/\\(dashboard\\)/bundles/[id]/edit\" \"/Users/user/Downloads/jmc/app/bundles\")"
     ],
     "additionalDirectories": [
-      "/Users/user/Downloads/jmc/app/orders/[id]"
+      "/Users/user/Downloads/jmc/app/orders/[id]",
+      "/Users/user/Downloads/jmc/app/admin/(dashboard)/bundles/[id]"
     ]
   }
 }

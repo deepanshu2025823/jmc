@@ -1,18 +1,49 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import twilio from "twilio";
-import { otpCache } from "@/lib/otp-store"; 
+import { otpCache } from "@/lib/otp-store";
+import { rateLimit, rateLimitHeaders, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const identifier = body.identifier || body.email;
-    
+
     if (!identifier) {
       return NextResponse.json({ error: "Email or Phone is required" }, { status: 400 });
     }
 
     const targetIdentifier = identifier.toLowerCase().trim();
+
+    // Per-identifier limit (3 OTPs per 10 min) — blocks SMS/email bombing.
+    const idLimit = rateLimit({
+      bucket: "otp:id",
+      identifier: targetIdentifier,
+      max: 3,
+      windowSec: 600,
+    });
+    if (!idLimit.ok) {
+      return NextResponse.json(
+        {
+          error: `Too many OTP requests. Try again in ${Math.ceil(idLimit.retryAfter / 60)} minutes.`,
+        },
+        { status: 429, headers: rateLimitHeaders(idLimit) }
+      );
+    }
+
+    // Per-IP burst guard (10 per min) — slows down automated scripts.
+    const ipLimit = rateLimit({
+      bucket: "otp:ip",
+      identifier: getClientIp(req),
+      max: 10,
+      windowSec: 60,
+    });
+    if (!ipLimit.ok) {
+      return NextResponse.json(
+        { error: "Too many requests from this network. Please slow down." },
+        { status: 429, headers: rateLimitHeaders(ipLimit) }
+      );
+    }
     const isEmail = targetIdentifier.includes("@");
     
     const otp = Math.floor(100000 + Math.random() * 900000).toString();

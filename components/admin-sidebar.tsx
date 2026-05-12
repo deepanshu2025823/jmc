@@ -12,6 +12,9 @@ import {
   Mail,
   Zap,
   ShoppingBag,
+  Crown,
+  Boxes,
+  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,10 +29,15 @@ const routes = [
     icon: BarChart3, 
     href: "/admin/analytics" 
   },
-  { 
-    label: "Products", 
-    icon: Package, 
-    href: "/admin/products" 
+  {
+    label: "Products",
+    icon: Package,
+    href: "/admin/products"
+  },
+  {
+    label: "Bundles",
+    icon: Boxes,
+    href: "/admin/bundles"
   },
   {
     label: "Orders",
@@ -45,6 +53,16 @@ const routes = [
     label: "Users",
     icon: Users,
     href: "/admin/customers"
+  },
+  {
+    label: "Segments",
+    icon: Crown,
+    href: "/admin/segments"
+  },
+  {
+    label: "Skin Quiz",
+    icon: Wand2,
+    href: "/admin/skin-quiz"
   },
   {
     label: "Customer Leads",

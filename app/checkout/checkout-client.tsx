@@ -245,6 +245,33 @@ export default function CheckoutClient({
       return;
     }
 
+    // Pre-flight stock check — give the user instant feedback before payment.
+    try {
+      const stockRes = await fetch("/api/cart/stock-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: cart.map((it) => ({ id: it.id, quantity: it.quantity || 1 })),
+        }),
+      });
+      const stockData = (await stockRes.json()) as {
+        ok: boolean;
+        issues?: { name: string; requested: number; available: number }[];
+      };
+      if (!stockData.ok && stockData.issues?.length) {
+        const first = stockData.issues[0];
+        const msg =
+          first.available === 0
+            ? `"${first.name}" is out of stock. Please remove it from your bag.`
+            : `Only ${first.available} left of "${first.name}". Please adjust quantity.`;
+        toast.error(msg);
+        return;
+      }
+    } catch {
+      // Network failure on the pre-check shouldn't block the order — the
+      // server-side atomic check will still catch any oversells.
+    }
+
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
 
