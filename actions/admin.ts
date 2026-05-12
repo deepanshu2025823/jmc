@@ -119,6 +119,10 @@ export interface StoreInfoInput {
   storePan: string;
   invoiceGstRate: number;
   invoicePrefix: string;
+  freeShippingThreshold?: number;
+  loyaltyEarnRate?: number;
+  loyaltyMaxRedeemPerOrder?: number;
+  giftWrapFee?: number;
 }
 
 export async function updateStoreInfo(
@@ -135,6 +139,11 @@ export async function updateStoreInfo(
         ? Math.floor(data.invoiceGstRate)
         : 18;
 
+    const cleanInt = (n: number | undefined, fallback: number) => {
+      const v = Math.floor(Number(n));
+      return Number.isFinite(v) && v >= 0 ? v : fallback;
+    };
+
     const payload = {
       storeName: data.storeName.trim() || null,
       storeAddress: data.storeAddress.trim() || null,
@@ -146,6 +155,10 @@ export async function updateStoreInfo(
       storePan: data.storePan.trim().toUpperCase() || null,
       invoiceGstRate: cleanRate,
       invoicePrefix: data.invoicePrefix.trim().toUpperCase() || "JMC",
+      freeShippingThreshold: cleanInt(data.freeShippingThreshold, 0) || null,
+      loyaltyEarnRate: cleanInt(data.loyaltyEarnRate, 10),
+      loyaltyMaxRedeemPerOrder: cleanInt(data.loyaltyMaxRedeemPerOrder, 500),
+      giftWrapFee: cleanInt(data.giftWrapFee, 0),
     };
 
     const existing = await prisma.storeSettings.findFirst();

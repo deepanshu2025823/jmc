@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Header } from "@/components/header";
-import { User, Package, Calendar, Clock, ArrowRight, ShieldCheck, ShoppingBag, MapPin, Bell } from "lucide-react";
+import { User, Package, Calendar, Clock, ArrowRight, ShieldCheck, ShoppingBag, MapPin, Bell, Repeat } from "lucide-react";
+import { SubscriptionCard } from "@/components/subscription-card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,19 @@ export interface ProfileOrder {
   orderItems: ProfileOrderItem[];
 }
 
+export interface ProfileSubscription {
+  id: string;
+  status: string;
+  intervalMonths: number;
+  pricePerCycle: number;
+  cyclesPaid: number;
+  nextBillingAt: string | null;
+  startedAt: string | null;
+  authUrl: string | null;
+  razorpaySubscriptionId: string | null;
+  product: { id: string; name: string; imageUrl: string | null };
+}
+
 export interface ProfileUser {
   id: string;
   name: string | null;
@@ -46,8 +60,10 @@ export interface ProfileUser {
   gender: string | null;
   emailNotif: boolean;
   smsNotif: boolean;
+  loyaltyPoints?: number;
   addresses: ProfileAddress[];
   orders: ProfileOrder[];
+  subscriptions?: ProfileSubscription[];
 }
 
 const formatDate = (dateString: string) => {
@@ -215,6 +231,14 @@ export function ProfileClient({ user }: { user: ProfileUser }) {
                   <span className="text-[10px] font-black uppercase tracking-widest text-[#50540b]">Elite Member</span>
                 </div>
               </div>
+
+              <div className="w-full mt-4 rounded-2xl bg-gradient-to-br from-[#B59461] to-[#50540b] p-5 text-white">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Loyalty Points</p>
+                <p className="text-3xl font-serif font-bold mt-1">{user.loyaltyPoints ?? 0}</p>
+                <p className="text-[10px] mt-2 opacity-90 leading-relaxed">
+                  1 point = ₹1 off your next order · earn 1 point per ₹10 spent
+                </p>
+              </div>
             </div>
 
             <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-zinc-100">
@@ -233,7 +257,23 @@ export function ProfileClient({ user }: { user: ProfileUser }) {
             </div>
           </div>
 
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-8 space-y-6">
+            {user.subscriptions && user.subscriptions.length > 0 && (
+              <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-zinc-100 space-y-6">
+                <div className="flex items-center gap-3">
+                  <Repeat className="h-5 w-5 text-[#B59461]" />
+                  <h2 className="text-2xl md:text-3xl font-serif font-bold text-zinc-900">
+                    My <span className="italic font-light">Subscriptions</span>
+                  </h2>
+                </div>
+                <div className="space-y-4">
+                  {user.subscriptions.map((sub) => (
+                    <SubscriptionCard key={sub.id} sub={sub} />
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 shadow-sm border border-zinc-100">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
                 <h2 className="text-2xl md:text-3xl font-serif font-bold text-zinc-900">Order <span className="italic font-light">History</span></h2>

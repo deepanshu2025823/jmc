@@ -53,9 +53,15 @@ export default async function CouponsPage() {
                 <Input name="perUserLimit" type="number" min="1" placeholder="∞" className="h-11" />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>Expiry Date</Label>
-              <Input name="expiresAt" type="date" required className="h-11" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Starts <span className="text-xs text-zinc-400 font-normal">— optional</span></Label>
+                <Input name="startsAt" type="date" className="h-11" />
+              </div>
+              <div className="space-y-2">
+                <Label>Expiry Date</Label>
+                <Input name="expiresAt" type="date" required className="h-11" />
+              </div>
             </div>
             <Button type="submit" className="w-full bg-zinc-900 text-white h-11">Create Coupon</Button>
           </form>

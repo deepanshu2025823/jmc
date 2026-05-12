@@ -87,15 +87,26 @@ export default async function EditCouponPage({ params }: { params: Promise<{ id:
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>Expiry Date</Label>
-          <Input
-            name="expiresAt"
-            type="date"
-            defaultValue={new Date(coupon.expiresAt).toISOString().split('T')[0]}
-            required
-            className="h-11"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Starts <span className="text-xs text-zinc-400 font-normal">— optional</span></Label>
+            <Input
+              name="startsAt"
+              type="date"
+              defaultValue={coupon.startsAt ? new Date(coupon.startsAt).toISOString().split('T')[0] : ""}
+              className="h-11"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Expiry Date</Label>
+            <Input
+              name="expiresAt"
+              type="date"
+              defaultValue={new Date(coupon.expiresAt).toISOString().split('T')[0]}
+              required
+              className="h-11"
+            />
+          </div>
         </div>
 
         <p className="text-xs text-zinc-500 bg-zinc-50 border border-zinc-100 rounded-lg p-3">

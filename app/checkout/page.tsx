@@ -27,14 +27,17 @@ export default async function CheckoutPage() {
   }
 
   return (
-    <CheckoutClient 
-      isCodEnabled={settings.isCodEnabled} 
+    <CheckoutClient
+      isCodEnabled={settings.isCodEnabled}
       isRazorpayEnabled={settings.isRazorpayEnabled}
       razorpayKeyId={settings.razorpayKeyId || ""}
       userEmail={session.user.email || ""}
       userName={user?.name || ""}
       userPhone={user?.phone || ""}
       savedAddresses={user?.addresses || []}
+      loyaltyPoints={user?.loyaltyPoints ?? 0}
+      loyaltyMaxRedeemPerOrder={settings.loyaltyMaxRedeemPerOrder ?? 500}
+      giftWrapFee={settings.giftWrapFee ?? 0}
     />
   );
 }

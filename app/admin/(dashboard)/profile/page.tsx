@@ -29,6 +29,10 @@ export default async function AdminProfilePage() {
         storePan: true,
         invoiceGstRate: true,
         invoicePrefix: true,
+        freeShippingThreshold: true,
+        loyaltyEarnRate: true,
+        loyaltyMaxRedeemPerOrder: true,
+        giftWrapFee: true,
       },
     }),
   ]);
@@ -54,6 +58,10 @@ export default async function AdminProfilePage() {
     storePan: settings?.storePan ?? "",
     invoiceGstRate: settings?.invoiceGstRate ?? 18,
     invoicePrefix: settings?.invoicePrefix ?? "JMC",
+    freeShippingThreshold: settings?.freeShippingThreshold ?? 0,
+    loyaltyEarnRate: settings?.loyaltyEarnRate ?? 10,
+    loyaltyMaxRedeemPerOrder: settings?.loyaltyMaxRedeemPerOrder ?? 500,
+    giftWrapFee: settings?.giftWrapFee ?? 0,
   };
 
   return <AdminProfileClient user={safeUser} storeInfo={storeInfo} />;

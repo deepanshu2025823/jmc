@@ -74,7 +74,10 @@ export default function CheckoutClient({
   userEmail,
   userName,
   userPhone,
-  savedAddresses
+  savedAddresses,
+  loyaltyPoints = 0,
+  loyaltyMaxRedeemPerOrder = 500,
+  giftWrapFee = 0,
 }: {
   isCodEnabled: boolean;
   isRazorpayEnabled: boolean;
@@ -83,6 +86,9 @@ export default function CheckoutClient({
   userName: string;
   userPhone: string;
   savedAddresses: SavedAddress[];
+  loyaltyPoints?: number;
+  loyaltyMaxRedeemPerOrder?: number;
+  giftWrapFee?: number;
 }) {
   const cart = useCartStore((s) => s.cart);
   const appliedCoupon = useCartStore((s) => s.appliedCoupon);
@@ -160,12 +166,24 @@ export default function CheckoutClient({
   const [pincodeArea, setPincodeArea] = useState<string | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string>(defaultAddr?.id ?? "new");
 
+  const [customerNote, setCustomerNote] = useState("");
+  const [giftWrap, setGiftWrap] = useState(false);
+  const [giftMessage, setGiftMessage] = useState("");
+  const [loyaltyPointsUsed, setLoyaltyPointsUsed] = useState(0);
+
   const subtotal = cart.reduce((acc, item) => acc + (Number(item.price) * (item.quantity || 1)), 0);
   let discount = 0;
   if (appliedCoupon) {
     discount = appliedCoupon.type === "FIXED" ? appliedCoupon.discount : (subtotal * appliedCoupon.discount) / 100;
   }
-  const total = subtotal - discount;
+  const wrapFee = giftWrap ? giftWrapFee : 0;
+  const maxRedeemable = Math.min(
+    loyaltyPoints,
+    loyaltyMaxRedeemPerOrder,
+    Math.max(0, Math.floor(subtotal - discount + wrapFee))
+  );
+  const safePointsUsed = Math.max(0, Math.min(loyaltyPointsUsed, maxRedeemable));
+  const total = Math.max(0, subtotal - discount + wrapFee - safePointsUsed);
 
   // Pincode → city/state auto-fill via India Post lookup.
   useEffect(() => {
@@ -273,7 +291,11 @@ export default function CheckoutClient({
     }
 
     const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
+    const data: Record<string, FormDataEntryValue | boolean | string | number> = Object.fromEntries(formData.entries());
+    data.customerNote = customerNote.trim();
+    data.giftWrap = giftWrap;
+    data.giftMessage = giftMessage.trim();
+    data.loyaltyPointsUsed = safePointsUsed;
 
     if (paymentMethod === "COD") {
       if (!isCodEnabled) return toast.error("COD is currently disabled.");
@@ -461,8 +483,97 @@ export default function CheckoutClient({
                 <Input name="state" value={state} onChange={e => setState(e.target.value)} required placeholder="State" className="rounded-2xl h-14 border-zinc-100 bg-zinc-50/50" />
               </div>
 
-              <div className="pt-10 border-t border-zinc-50 mt-10">
-                <div className="flex items-center justify-between mb-6">
+              <div className="pt-10 border-t border-zinc-50 mt-10 space-y-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2 block mb-2">
+                    Order note <span className="font-normal text-zinc-300">— optional</span>
+                  </label>
+                  <textarea
+                    value={customerNote}
+                    onChange={(e) => setCustomerNote(e.target.value)}
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Delivery instructions, special requests…"
+                    className="w-full rounded-2xl border border-zinc-100 bg-zinc-50/50 px-4 py-3 text-sm focus:outline-none focus:border-[#50540b] resize-y"
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-zinc-100 bg-zinc-50/40 p-5 space-y-3">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <div>
+                      <p className="text-sm font-bold text-zinc-900">Gift wrap this order</p>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">
+                        {giftWrapFee > 0
+                          ? `Premium gift packaging · ₹${giftWrapFee}`
+                          : "Premium gift packaging · Complimentary"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setGiftWrap((g) => !g)}
+                      className={cn(
+                        "w-11 h-6 rounded-full relative transition-colors shrink-0",
+                        giftWrap ? "bg-[#50540b]" : "bg-zinc-300"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "h-4 w-4 bg-white rounded-full absolute top-1 transition-all shadow",
+                          giftWrap ? "left-6" : "left-1"
+                        )}
+                      />
+                    </button>
+                  </label>
+                  {giftWrap && (
+                    <textarea
+                      value={giftMessage}
+                      onChange={(e) => setGiftMessage(e.target.value)}
+                      rows={2}
+                      maxLength={200}
+                      placeholder="Gift message (optional) — will be printed on a luxe card"
+                      className="w-full mt-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm focus:outline-none focus:border-[#50540b]"
+                    />
+                  )}
+                </div>
+
+                {loyaltyPoints > 0 && maxRedeemable > 0 && (
+                  <div className="rounded-2xl border border-[#B59461]/30 bg-[#F9F6F0]/60 p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-zinc-900 inline-flex items-center gap-1.5">
+                          <ShieldCheck className="h-3.5 w-3.5 text-[#B59461]" />
+                          Use loyalty points
+                        </p>
+                        <p className="text-[11px] text-zinc-600 mt-0.5">
+                          You have <span className="font-bold text-[#B59461]">{loyaltyPoints}</span> points · max ₹{maxRedeemable} off this order
+                        </p>
+                      </div>
+                      <p className="text-lg font-black text-[#B59461]">
+                        −₹{safePointsUsed.toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="range"
+                        min={0}
+                        max={maxRedeemable}
+                        step={10}
+                        value={safePointsUsed}
+                        onChange={(e) => setLoyaltyPointsUsed(Number(e.target.value))}
+                        className="flex-1 accent-[#B59461]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setLoyaltyPointsUsed(maxRedeemable)}
+                        className="text-[10px] font-bold uppercase tracking-widest text-[#B59461] hover:text-zinc-900 shrink-0"
+                      >
+                        Max
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
                   <h2 className="text-xl font-serif font-bold">Choose Payment Ritual</h2>
                   {(!isCodEnabled && !isRazorpayEnabled) && (
                     <span className="flex items-center gap-1.5 text-xs font-bold text-red-500 bg-red-50 px-3 py-1 rounded-full">

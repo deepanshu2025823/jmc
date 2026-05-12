@@ -8,42 +8,51 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(uuid())
-  name               String?
-  email              String              @unique
-  password           String
-  role               Role                @default(USER)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  emailNotif         Boolean             @default(true)
-  smsNotif           Boolean             @default(false)
-  dob                String?
-  gender             String?
-  phone              String?
-  addresses          Address[]
-  orders             Order[]
-  reviews            Review[]
-  wishlistItems      WishlistItem[]
-  redemptions        CouponRedemption[]
-  abandonedCheckouts AbandonedCheckout[]
+  id                   String                @id @default(uuid())
+  name                 String?
+  email                String                @unique
+  password             String
+  role                 Role                  @default(USER)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  emailNotif           Boolean               @default(true)
+  smsNotif             Boolean               @default(false)
+  dob                  String?
+  gender               String?
+  phone                String?
+  loyaltyPoints        Int                   @default(0)
+  addresses            Address[]
+  orders               Order[]
+  reviews              Review[]
+  wishlistItems        WishlistItem[]
+  redemptions          CouponRedemption[]
+  abandonedCheckouts   AbandonedCheckout[]
+  loyaltyTransactions  LoyaltyTransaction[]
+  stockSubscriptions   StockSubscription[]
+  subscriptions        Subscription[]
 }
 
 model Product {
-  id            String         @id @default(uuid())
-  name          String
-  slug          String         @unique
-  description   String         @db.Text
-  price         Decimal        @db.Decimal(10, 2)
-  imageUrl      String?
-  images        Json?
-  stock         Int            @default(0)
-  category      String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  orderItems    OrderItem[]
-  reviews       Review[]
-  wishlistItems WishlistItem[]
-  bundleItems   BundleItem[]
+  id                       String              @id @default(uuid())
+  name                     String
+  slug                     String              @unique
+  description              String              @db.Text
+  price                    Decimal             @db.Decimal(10, 2)
+  imageUrl                 String?
+  images                   Json?
+  stock                    Int                 @default(0)
+  category                 String?
+  subscribable             Boolean             @default(false)
+  subscriptionDiscountPct  Int                 @default(10)
+  subscriptionIntervalMonths Int               @default(1)
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  orderItems               OrderItem[]
+  reviews                  Review[]
+  wishlistItems            WishlistItem[]
+  bundleItems              BundleItem[]
+  stockSubscriptions       StockSubscription[]
+  subscriptions            Subscription[]
 }
 
 model Order {
@@ -64,6 +73,12 @@ model Order {
   shippingPincode      String?
   shiprocketOrderId    String?
   shiprocketShipmentId String?
+  customerNote         String?     @db.Text
+  giftWrap             Boolean     @default(false)
+  giftMessage          String?     @db.Text
+  loyaltyPointsUsed    Int         @default(0)
+  loyaltyDiscount      Decimal?    @db.Decimal(10, 2)
+  loyaltyPointsEarned  Int         @default(0)
   paidAt               DateTime?
   shippedAt            DateTime?
   deliveredAt          DateTime?
@@ -94,6 +109,7 @@ model Coupon {
   code           String             @unique
   discountValue  Int
   type           String             @default("FIXED")
+  startsAt       DateTime?
   expiresAt      DateTime
   isActive       Boolean            @default(true)
   minOrderAmount Decimal?           @db.Decimal(10, 2)
@@ -166,6 +182,66 @@ model Notification {
   @@index([isRead, createdAt])
 }
 
+model LoyaltyTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String
+  points      Int
+  description String?
+  orderId     String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Subscription {
+  id                     String    @id @default(uuid())
+  userId                 String
+  productId              String
+  razorpaySubscriptionId String?   @unique
+  razorpayPlanId         String?
+  status                 String    @default("CREATED")
+  intervalMonths         Int       @default(1)
+  pricePerCycle          Decimal   @db.Decimal(10, 2)
+  totalCycles            Int?
+  cyclesPaid             Int       @default(0)
+  shippingAddress        String?   @db.Text
+  shippingCity           String?
+  shippingState          String?
+  shippingPincode        String?
+  shippingPhone          String?
+  shippingName           String?
+  authUrl                String?   @db.Text
+  nextBillingAt          DateTime?
+  startedAt              DateTime?
+  cancelledAt            DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product                Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productId])
+  @@index([status])
+}
+
+model StockSubscription {
+  id          String    @id @default(uuid())
+  productId   String
+  email       String
+  userId      String?
+  createdAt   DateTime  @default(now())
+  notifiedAt  DateTime?
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([productId, email])
+  @@index([productId])
+  @@index([notifiedAt])
+}
+
 model AbandonedCheckout {
   id              String    @id @default(uuid())
   userId          String
@@ -236,6 +312,7 @@ model StoreSettings {
   isRazorpayEnabled        Boolean  @default(false)
   razorpayKeyId            String?
   razorpayKeySecret        String?
+  razorpayWebhookSecret    String?
   isShiprocketEnabled      Boolean  @default(false)
   shiprocketEmail          String?
   shiprocketPassword       String?
@@ -251,6 +328,10 @@ model StoreSettings {
   storePan                 String?
   invoiceGstRate           Int?
   invoicePrefix            String?
+  freeShippingThreshold    Int?
+  loyaltyEarnRate          Int?     @default(10)
+  loyaltyMaxRedeemPerOrder Int?     @default(500)
+  giftWrapFee              Int?     @default(0)
   updatedAt                DateTime @updatedAt
 }
 

@@ -48,7 +48,15 @@ export async function POST(req: Request) {
       );
     }
 
-    if (new Date() > new Date(coupon.expiresAt)) {
+    const now = new Date();
+    if (coupon.startsAt && now < new Date(coupon.startsAt)) {
+      return NextResponse.json(
+        { error: `This coupon becomes active on ${new Date(coupon.startsAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}` },
+        { status: 400 }
+      );
+    }
+
+    if (now > new Date(coupon.expiresAt)) {
       return NextResponse.json(
         { error: "This coupon has expired" },
         { status: 400 }

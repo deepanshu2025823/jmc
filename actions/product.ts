@@ -7,6 +7,7 @@ import type { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { parseCsv, slugify } from "@/lib/csv";
+import { notifyStockSubscribers } from "@/actions/stock-notify";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dwqdav3kq",
@@ -80,16 +81,23 @@ export async function createProduct(formData: FormData) {
       if (url) galleryUrls.push(url);
     }
 
+    const subscribable = formData.get("subscribable") === "on" || formData.get("subscribable") === "true";
+    const subscriptionDiscountPct = Math.max(0, Math.min(50, parseInt((formData.get("subscriptionDiscountPct") as string) || "10")));
+    const subscriptionIntervalMonths = Math.max(1, Math.min(12, parseInt((formData.get("subscriptionIntervalMonths") as string) || "1")));
+
     await prisma.product.create({
-      data: { 
-        name, 
-        slug, 
-        description, 
-        price, 
-        stock, 
-        category, 
-        imageUrl, 
-        images: galleryUrls 
+      data: {
+        name,
+        slug,
+        description,
+        price,
+        stock,
+        category,
+        imageUrl,
+        images: galleryUrls,
+        subscribable,
+        subscriptionDiscountPct,
+        subscriptionIntervalMonths,
       }
     });
 
@@ -134,7 +142,20 @@ export async function updateProduct(id: string, formData: FormData) {
     }
 
     const existingProduct = await prisma.product.findUnique({ where: { id } });
-    const dataToUpdate: Prisma.ProductUpdateInput = { name, slug, description, price, stock, category };
+    const subscribable = formData.get("subscribable") === "on" || formData.get("subscribable") === "true";
+    const subscriptionDiscountPct = Math.max(0, Math.min(50, parseInt((formData.get("subscriptionDiscountPct") as string) || "10")));
+    const subscriptionIntervalMonths = Math.max(1, Math.min(12, parseInt((formData.get("subscriptionIntervalMonths") as string) || "1")));
+    const dataToUpdate: Prisma.ProductUpdateInput = {
+      name,
+      slug,
+      description,
+      price,
+      stock,
+      category,
+      subscribable,
+      subscriptionDiscountPct,
+      subscriptionIntervalMonths,
+    };
 
     if (newImageUrl) {
       dataToUpdate.imageUrl = newImageUrl;
@@ -145,10 +166,17 @@ export async function updateProduct(id: string, formData: FormData) {
       dataToUpdate.images = [...currentImages, ...newGalleryUrls];
     }
 
+    const previousStock = existingProduct?.stock ?? 0;
+
     await prisma.product.update({
       where: { id },
       data: dataToUpdate
     });
+
+    // Fire stock back-in notifications if product just transitioned 0 → >0
+    if (previousStock <= 0 && stock > 0) {
+      void notifyStockSubscribers(id);
+    }
 
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${id}/edit`);

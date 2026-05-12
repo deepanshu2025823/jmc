@@ -5,10 +5,12 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    const now = new Date();
     const coupons = await prisma.coupon.findMany({
       where: {
         isActive: true,
-        expiresAt: { gt: new Date() },
+        expiresAt: { gt: now },
+        OR: [{ startsAt: null }, { startsAt: { lte: now } }],
       },
       orderBy: [{ discountValue: "desc" }, { createdAt: "desc" }],
       select: {

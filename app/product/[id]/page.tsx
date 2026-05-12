@@ -18,6 +18,9 @@ import { RecentlyViewed } from "@/components/recently-viewed";
 import { RecentlyViewedTracker } from "@/components/recently-viewed-tracker";
 import { MobileStickyCta } from "@/components/mobile-sticky-cta";
 import { ProductShareButton } from "@/components/product-share-button";
+import { StockNotifyForm } from "@/components/stock-notify-form";
+import { FrequentlyBoughtTogether } from "@/components/frequently-bought-together";
+import { SubscribeButton } from "@/components/subscribe-button";
 import { SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/site";
 
 export async function generateMetadata(props: {
@@ -205,9 +208,24 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
             </div>
 
             <div className="flex flex-col gap-4">
-              <AddToCartButton product={product} />
-
-              <BuyNowButton product={product} isUserLoggedIn={isUserLoggedIn} />
+              {product.stock > 0 ? (
+                <>
+                  <AddToCartButton product={product} />
+                  <BuyNowButton product={product} isUserLoggedIn={isUserLoggedIn} />
+                  {rawProduct.subscribable && (
+                    <SubscribeButton
+                      productId={product.id}
+                      productName={product.name}
+                      basePrice={product.price}
+                      discountPct={rawProduct.subscriptionDiscountPct}
+                      intervalMonths={rawProduct.subscriptionIntervalMonths}
+                      isUserLoggedIn={isUserLoggedIn}
+                    />
+                  )}
+                </>
+              ) : (
+                <StockNotifyForm productId={product.id} defaultEmail={session?.user?.email ?? ""} />
+              )}
 
               <div className="flex items-center gap-3">
                 <div className="flex-1">
@@ -230,6 +248,8 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
           </div>
         </div>
       </div>
+
+      <FrequentlyBoughtTogether productId={id} />
 
       <div id="reviews" className="max-w-7xl mx-auto px-6">
         <ProductReviews productId={id} />

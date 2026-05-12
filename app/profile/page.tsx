@@ -25,7 +25,13 @@ export default async function ProfilePage() {
               include: { product: true }
             }
           }
-        }
+        },
+        subscriptions: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            product: { select: { id: true, name: true, imageUrl: true } },
+          },
+        },
       }
     });
 
@@ -33,6 +39,7 @@ export default async function ProfilePage() {
 
     const safeUser = {
       ...user,
+      loyaltyPoints: user.loyaltyPoints,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
       addresses: user.addresses?.map((addr) => ({
@@ -50,12 +57,28 @@ export default async function ProfilePage() {
           price: Number(item.price),
           product: {
             ...item.product,
-            price: Number(item.product.price), 
+            price: Number(item.product.price),
             createdAt: item.product.createdAt.toISOString(),
             updatedAt: item.product.updatedAt.toISOString(),
           }
         }))
-      }))
+      })),
+      subscriptions: user.subscriptions.map(sub => ({
+        id: sub.id,
+        status: sub.status,
+        intervalMonths: sub.intervalMonths,
+        pricePerCycle: Number(sub.pricePerCycle),
+        cyclesPaid: sub.cyclesPaid,
+        nextBillingAt: sub.nextBillingAt?.toISOString() ?? null,
+        startedAt: sub.startedAt?.toISOString() ?? null,
+        authUrl: sub.authUrl,
+        razorpaySubscriptionId: sub.razorpaySubscriptionId,
+        product: {
+          id: sub.product.id,
+          name: sub.product.name,
+          imageUrl: sub.product.imageUrl,
+        },
+      })),
     };
 
     return <ProfileClient user={safeUser} />;

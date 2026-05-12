@@ -15,11 +15,18 @@ function parseOptionalDecimal(value: FormDataEntryValue | null): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+function parseOptionalDate(value: FormDataEntryValue | null): Date | null {
+  if (value === null || value === "") return null;
+  const d = new Date(String(value));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 export async function createCoupon(formData: FormData) {
   const code = (formData.get("code") as string).toUpperCase();
   const discountValue = parseInt(formData.get("discountValue") as string);
   const type = formData.get("type") as string;
   const expiresAt = new Date(formData.get("expiresAt") as string);
+  const startsAt = parseOptionalDate(formData.get("startsAt"));
   const minOrderAmount = parseOptionalDecimal(formData.get("minOrderAmount"));
   const usageLimit = parseOptionalInt(formData.get("usageLimit"));
   const perUserLimit = parseOptionalInt(formData.get("perUserLimit"));
@@ -29,6 +36,7 @@ export async function createCoupon(formData: FormData) {
       code,
       discountValue,
       type,
+      startsAt,
       expiresAt,
       minOrderAmount,
       usageLimit,
@@ -44,6 +52,7 @@ export async function updateCoupon(id: string, formData: FormData) {
   const discountValue = parseInt(formData.get("discountValue") as string);
   const type = formData.get("type") as string;
   const expiresAt = new Date(formData.get("expiresAt") as string);
+  const startsAt = parseOptionalDate(formData.get("startsAt"));
   const minOrderAmount = parseOptionalDecimal(formData.get("minOrderAmount"));
   const usageLimit = parseOptionalInt(formData.get("usageLimit"));
   const perUserLimit = parseOptionalInt(formData.get("perUserLimit"));
@@ -54,6 +63,7 @@ export async function updateCoupon(id: string, formData: FormData) {
       code,
       discountValue,
       type,
+      startsAt,
       expiresAt,
       minOrderAmount,
       usageLimit,

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from 'sonner';
 import AuthProvider from "@/components/providers/auth-provider";
 import { Footer } from "@/components/footer";
+import { FreeShippingBarWrapper } from "@/components/free-shipping-bar-wrapper";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_TAGLINE } from "@/lib/site";
 
 const jost = Jost({
@@ -111,10 +112,11 @@ export default function RootLayout({
           />
           
           <div className="flex flex-col min-h-screen">
+            <FreeShippingBarWrapper />
             <main className="flex-1">
               {children}
             </main>
-            
+
             <Footer />
           </div>
 

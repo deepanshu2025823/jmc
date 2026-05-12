@@ -20,6 +20,9 @@ interface AdminProduct {
   stock: number;
   imageUrl: string | null;
   images: string[] | null;
+  subscribable?: boolean;
+  subscriptionDiscountPct?: number;
+  subscriptionIntervalMonths?: number;
 }
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -196,6 +199,54 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             <div className="space-y-2">
               <Label htmlFor="stock" className="text-xs font-bold text-zinc-700">Stock</Label>
               <Input id="stock" name="stock" type="number" defaultValue={product.stock} required className="h-12 rounded-xl bg-zinc-50/50" />
+            </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-zinc-100 space-y-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+              Subscription (Auto-replenish)
+            </p>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="subscribable"
+                value="true"
+                defaultChecked={product.subscribable}
+                className="h-4 w-4 accent-[#B59461]"
+              />
+              <span className="text-sm text-zinc-700">
+                Allow customers to subscribe to this product
+              </span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="subscriptionDiscountPct" className="text-xs font-bold text-zinc-700">
+                  Subscription discount %
+                </Label>
+                <Input
+                  id="subscriptionDiscountPct"
+                  name="subscriptionDiscountPct"
+                  type="number"
+                  min={0}
+                  max={50}
+                  defaultValue={product.subscriptionDiscountPct ?? 10}
+                  className="h-11 rounded-xl bg-zinc-50/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="subscriptionIntervalMonths" className="text-xs font-bold text-zinc-700">
+                  Delivery interval (months)
+                </Label>
+                <Input
+                  id="subscriptionIntervalMonths"
+                  name="subscriptionIntervalMonths"
+                  type="number"
+                  min={1}
+                  max={12}
+                  defaultValue={product.subscriptionIntervalMonths ?? 1}
+                  className="h-11 rounded-xl bg-zinc-50/50"
+                />
+              </div>
             </div>
           </div>
         </div>

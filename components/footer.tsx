@@ -68,7 +68,7 @@ export function Footer() {
           </div>
 
           <div className="pt-8 border-t border-zinc-900 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
-            <p>&copy; {new Date().getFullYear()} JMC Luxury Skincare. All rights reserved | <a href="https://royalfinitytechnologies.com/" target="_blank" rel="noopener noreferrer">Design &amp; Developed By Royalfinity Technologies</a> </p>
+            <p>&copy; {new Date().getFullYear()} JMC Luxury Skincare. All rights reserved | Design &amp; Developed By Joshi Cloud</p>
             <div className="flex gap-6">
               <Link href="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
               <Link href="/terms-of-service" className="hover:text-white">Terms of Service</Link>

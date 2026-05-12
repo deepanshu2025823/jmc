@@ -40,8 +40,19 @@ export async function POST(req: Request) {
       coupon?: AppliedCouponPayload | null;
       paymentMethod?: string;
       isPaid?: boolean;
+      customerNote?: string;
+      giftWrap?: boolean;
+      giftMessage?: string;
+      loyaltyPointsUsed?: number;
     };
     const { items, totalAmount, coupon, shippingDetails } = body;
+    const customerNote = body.customerNote?.trim() || null;
+    const giftWrap = body.giftWrap === true;
+    const giftMessage = body.giftMessage?.trim() || null;
+    const loyaltyPointsUsedRaw = Math.max(
+      0,
+      Math.floor(Number(body.loyaltyPointsUsed) || 0)
+    );
     const paymentMethod =
       body.paymentMethod === "ONLINE" ? "ONLINE" : "COD";
     const isPaid = body.isPaid === true;
@@ -100,6 +111,27 @@ export async function POST(req: Request) {
       }
     }
 
+    // Loyalty: validate redemption against actual balance + per-order cap.
+    const settings = await prisma.storeSettings.findFirst({
+      select: {
+        loyaltyEarnRate: true,
+        loyaltyMaxRedeemPerOrder: true,
+      },
+    });
+    const earnRate = settings?.loyaltyEarnRate ?? 10;
+    const maxRedeem = settings?.loyaltyMaxRedeemPerOrder ?? 500;
+
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { loyaltyPoints: true },
+    });
+    const availablePoints = fullUser?.loyaltyPoints ?? 0;
+    const loyaltyPointsUsed = Math.min(
+      loyaltyPointsUsedRaw,
+      availablePoints,
+      maxRedeem
+    );
+
     // Atomic stock reservation + order creation. Conditional decrements
     // ensure two simultaneous orders for the last unit cannot both succeed.
     let order;
@@ -130,6 +162,7 @@ export async function POST(req: Request) {
           }
         }
 
+        const pointsEarned = Math.floor(totalAmount / earnRate);
         const created = await tx.order.create({
           data: {
             userId: user.id,
@@ -144,6 +177,12 @@ export async function POST(req: Request) {
             shippingCity: str("city"),
             shippingState: str("state"),
             shippingPincode: str("pincode"),
+            customerNote,
+            giftWrap,
+            giftMessage,
+            loyaltyPointsUsed,
+            loyaltyDiscount: loyaltyPointsUsed > 0 ? loyaltyPointsUsed : null,
+            loyaltyPointsEarned: pointsEarned,
             orderItems: {
               create: items.map((item) => ({
                 productId: item.id,
@@ -153,6 +192,37 @@ export async function POST(req: Request) {
             },
           },
         });
+
+        if (loyaltyPointsUsed > 0) {
+          await tx.user.update({
+            where: { id: user.id },
+            data: { loyaltyPoints: { decrement: loyaltyPointsUsed } },
+          });
+          await tx.loyaltyTransaction.create({
+            data: {
+              userId: user.id,
+              type: "REDEEM",
+              points: -loyaltyPointsUsed,
+              description: `Redeemed on order #${created.id.slice(-8).toUpperCase()}`,
+              orderId: created.id,
+            },
+          });
+        }
+        if (pointsEarned > 0) {
+          await tx.user.update({
+            where: { id: user.id },
+            data: { loyaltyPoints: { increment: pointsEarned } },
+          });
+          await tx.loyaltyTransaction.create({
+            data: {
+              userId: user.id,
+              type: "EARN",
+              points: pointsEarned,
+              description: `Earned on order #${created.id.slice(-8).toUpperCase()}`,
+              orderId: created.id,
+            },
+          });
+        }
 
         if (couponId) {
           await tx.coupon.update({

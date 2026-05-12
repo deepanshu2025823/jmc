@@ -4,7 +4,7 @@ import { useCartStore } from "@/hooks/use-cart-store";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export type OrderFormData = Record<string, FormDataEntryValue | boolean | string>;
+export type OrderFormData = Record<string, FormDataEntryValue | boolean | string | number>;
 
 export function useOrderActions() {
   const router = useRouter();
@@ -34,6 +34,10 @@ export function useOrderActions() {
             formData.paymentMethod === "ONLINE" ? "ONLINE" : "COD",
           isPaid: formData.isPaid === true,
           coupon: appliedCoupon ? { code: appliedCoupon.code } : null,
+          customerNote: formData.customerNote as string | undefined,
+          giftWrap: formData.giftWrap === true || formData.giftWrap === "true",
+          giftMessage: formData.giftMessage as string | undefined,
+          loyaltyPointsUsed: Number(formData.loyaltyPointsUsed) || 0,
         }),
       });
 

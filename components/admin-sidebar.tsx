@@ -15,6 +15,7 @@ import {
   Crown,
   Boxes,
   Wand2,
+  Repeat,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +49,11 @@ const routes = [
     label: "Abandoned Carts",
     icon: ShoppingBag,
     href: "/admin/abandoned-carts"
+  },
+  {
+    label: "Subscriptions",
+    icon: Repeat,
+    href: "/admin/subscriptions"
   },
   {
     label: "Users",

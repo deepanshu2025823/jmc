@@ -27,6 +27,10 @@ export interface StoreInfoData {
   storePan: string;
   invoiceGstRate: number;
   invoicePrefix: string;
+  freeShippingThreshold: number;
+  loyaltyEarnRate: number;
+  loyaltyMaxRedeemPerOrder: number;
+  giftWrapFee: number;
 }
 
 export function AdminProfileClient({
@@ -61,7 +65,11 @@ export function AdminProfileClient({
     store.storeGstin !== storeInfo.storeGstin ||
     store.storePan !== storeInfo.storePan ||
     store.invoiceGstRate !== storeInfo.invoiceGstRate ||
-    store.invoicePrefix !== storeInfo.invoicePrefix;
+    store.invoicePrefix !== storeInfo.invoicePrefix ||
+    store.freeShippingThreshold !== storeInfo.freeShippingThreshold ||
+    store.loyaltyEarnRate !== storeInfo.loyaltyEarnRate ||
+    store.loyaltyMaxRedeemPerOrder !== storeInfo.loyaltyMaxRedeemPerOrder ||
+    store.giftWrapFee !== storeInfo.giftWrapFee;
 
   const setStoreField = <K extends keyof StoreInfoData>(
     key: K,
@@ -526,6 +534,89 @@ export function AdminProfileClient({
                   <p className="text-[10px] text-zinc-400">
                     Example: <span className="font-mono">JMC-202412-A3F8D2B1</span>
                   </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-zinc-100 space-y-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                  Storefront experience
+                </p>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                    Free shipping threshold (₹)
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={store.freeShippingThreshold}
+                    onChange={(e) =>
+                      setStoreField(
+                        "freeShippingThreshold",
+                        Number(e.target.value) || 0
+                      )
+                    }
+                    placeholder="e.g. 999 (set 0 to hide the bar)"
+                    className="h-12 rounded-xl bg-zinc-50/50 border-zinc-200 focus:border-[#B59461]"
+                  />
+                  <p className="text-[10px] text-zinc-400">
+                    Shown as a sticky bar at the top of the storefront.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      Loyalty earn rate
+                    </label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={store.loyaltyEarnRate}
+                      onChange={(e) =>
+                        setStoreField("loyaltyEarnRate", Number(e.target.value) || 10)
+                      }
+                      className="h-12 rounded-xl bg-zinc-50/50 border-zinc-200 focus:border-[#B59461]"
+                    />
+                    <p className="text-[10px] text-zinc-400">
+                      ₹ spent per 1 point earned (default 10).
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                      Max redeem / order
+                    </label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={store.loyaltyMaxRedeemPerOrder}
+                      onChange={(e) =>
+                        setStoreField(
+                          "loyaltyMaxRedeemPerOrder",
+                          Number(e.target.value) || 0
+                        )
+                      }
+                      className="h-12 rounded-xl bg-zinc-50/50 border-zinc-200 focus:border-[#B59461]"
+                    />
+                    <p className="text-[10px] text-zinc-400">
+                      Max points (= ₹) a customer can apply per order.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                    Gift wrap fee (₹)
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={store.giftWrapFee}
+                    onChange={(e) =>
+                      setStoreField("giftWrapFee", Number(e.target.value) || 0)
+                    }
+                    placeholder="0 for complimentary"
+                    className="h-12 rounded-xl bg-zinc-50/50 border-zinc-200 focus:border-[#B59461]"
+                  />
                 </div>
               </div>
 
