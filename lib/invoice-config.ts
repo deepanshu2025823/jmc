@@ -1,18 +1,15 @@
 /**
- * Seller info shown on customer invoices. Reads from env where available,
- * with sensible defaults for the JMC store. Update env vars in production:
+ * Invoice / seller config — DB-backed with env fallback.
  *
- *   STORE_NAME           — legal company name
- *   STORE_ADDRESS        — street address (multi-line, use \n)
- *   STORE_CITY           — city / state line, e.g. "New Delhi, India - 110001"
- *   STORE_GSTIN          — 15-char GST number (optional)
- *   STORE_PAN            — PAN number (optional)
- *   STORE_EMAIL          — support email
- *   STORE_PHONE          — support phone
- *   STORE_WEBSITE        — domain
- *   INVOICE_GST_RATE     — percentage (default 18 for cosmetics)
- *   INVOICE_PREFIX       — invoice number prefix (default "JMC")
+ * Source of truth (in order of precedence):
+ *   1. StoreSettings row (admin can edit via /admin/profile)
+ *   2. Environment variables (STORE_NAME, STORE_GSTIN, etc.)
+ *   3. Hard-coded defaults
+ *
+ * Call `getInvoiceConfig()` (async) from server components / server actions.
  */
+
+import prisma from "@/lib/prisma";
 
 export interface SellerInfo {
   name: string;
@@ -25,7 +22,13 @@ export interface SellerInfo {
   website: string;
 }
 
-export const SELLER: SellerInfo = {
+export interface InvoiceConfig {
+  seller: SellerInfo;
+  gstRate: number;
+  prefix: string;
+}
+
+const DEFAULTS: SellerInfo = {
   name: process.env.STORE_NAME || "JMC Secret Rituals",
   address: process.env.STORE_ADDRESS || "Luxury Skincare House",
   cityLine: process.env.STORE_CITY || "India",
@@ -36,15 +39,65 @@ export const SELLER: SellerInfo = {
   website: process.env.STORE_WEBSITE || "jmcskinsecrets.com",
 };
 
-export const INVOICE_GST_RATE = Number(process.env.INVOICE_GST_RATE || 18);
-export const INVOICE_PREFIX = process.env.INVOICE_PREFIX || "JMC";
+const DEFAULT_GST_RATE = Number(process.env.INVOICE_GST_RATE || 18);
+const DEFAULT_PREFIX = process.env.INVOICE_PREFIX || "JMC";
+
+export async function getInvoiceConfig(): Promise<InvoiceConfig> {
+  try {
+    const s = await prisma.storeSettings.findFirst({
+      select: {
+        storeName: true,
+        storeAddress: true,
+        storeCity: true,
+        storePhone: true,
+        storeEmail: true,
+        storeWebsite: true,
+        storeGstin: true,
+        storePan: true,
+        invoiceGstRate: true,
+        invoicePrefix: true,
+      },
+    });
+
+    const seller: SellerInfo = {
+      name: s?.storeName?.trim() || DEFAULTS.name,
+      address: s?.storeAddress?.trim() || DEFAULTS.address,
+      cityLine: s?.storeCity?.trim() || DEFAULTS.cityLine,
+      gstin: s?.storeGstin?.trim() || DEFAULTS.gstin,
+      pan: s?.storePan?.trim() || DEFAULTS.pan,
+      email: s?.storeEmail?.trim() || DEFAULTS.email,
+      phone: s?.storePhone?.trim() || DEFAULTS.phone,
+      website: s?.storeWebsite?.trim() || DEFAULTS.website,
+    };
+
+    return {
+      seller,
+      gstRate:
+        s?.invoiceGstRate && s.invoiceGstRate > 0
+          ? s.invoiceGstRate
+          : DEFAULT_GST_RATE,
+      prefix: s?.invoicePrefix?.trim() || DEFAULT_PREFIX,
+    };
+  } catch (error) {
+    console.error("getInvoiceConfig fallback to env:", error);
+    return {
+      seller: DEFAULTS,
+      gstRate: DEFAULT_GST_RATE,
+      prefix: DEFAULT_PREFIX,
+    };
+  }
+}
 
 /** Builds a human-friendly invoice number from order id + created date. */
-export function buildInvoiceNumber(orderId: string, createdAt: Date): string {
+export function buildInvoiceNumber(
+  orderId: string,
+  createdAt: Date,
+  prefix: string
+): string {
   const yyyy = createdAt.getFullYear();
   const mm = String(createdAt.getMonth() + 1).padStart(2, "0");
   const tail = orderId.slice(-8).toUpperCase();
-  return `${INVOICE_PREFIX}-${yyyy}${mm}-${tail}`;
+  return `${prefix}-${yyyy}${mm}-${tail}`;
 }
 
 /**
@@ -53,7 +106,7 @@ export function buildInvoiceNumber(orderId: string, createdAt: Date): string {
  */
 export function splitGstInclusive(
   total: number,
-  rate: number = INVOICE_GST_RATE,
+  rate: number,
   intrastate = true
 ) {
   const taxable = total / (1 + rate / 100);

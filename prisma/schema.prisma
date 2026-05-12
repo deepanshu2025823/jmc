@@ -195,6 +195,16 @@ model StoreSettings {
   shiprocketPassword       String?
   shiprocketPickupLocation String?  @default("Primary")
   shiprocketWebhookToken   String?
+  storeName                String?
+  storeAddress             String?  @db.Text
+  storeCity                String?
+  storePhone               String?
+  storeEmail               String?
+  storeWebsite             String?
+  storeGstin               String?
+  storePan                 String?
+  invoiceGstRate           Int?
+  invoicePrefix            String?
   updatedAt                DateTime @updatedAt
 }
 

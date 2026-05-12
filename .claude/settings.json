@@ -8,7 +8,8 @@
       "Bash(echo \"ESLINT: $?\")",
       "Bash(npx prisma *)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(24\\).toString\\('hex'\\)\\)\")"
     ],
     "additionalDirectories": [
       "/Users/user/Downloads/jmc/app/orders/[id]"

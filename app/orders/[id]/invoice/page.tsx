@@ -3,8 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import {
-  SELLER,
-  INVOICE_GST_RATE,
+  getInvoiceConfig,
   buildInvoiceNumber,
   splitGstInclusive,
   amountInWords,
@@ -66,7 +65,10 @@ export default async function InvoicePage({
   if (!order) notFound();
   if (order.userId !== user.id && user.role !== "ADMIN") notFound();
 
-  const invoiceNumber = buildInvoiceNumber(order.id, order.createdAt);
+  const { seller: SELLER, gstRate: INVOICE_GST_RATE, prefix } =
+    await getInvoiceConfig();
+
+  const invoiceNumber = buildInvoiceNumber(order.id, order.createdAt, prefix);
   const totalAmount = Number(order.totalAmount);
   const subtotalRaw = order.orderItems.reduce(
     (s, it) => s + Number(it.price) * it.quantity,

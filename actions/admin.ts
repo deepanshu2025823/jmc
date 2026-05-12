@@ -108,6 +108,65 @@ export async function updateRazorpaySettings(data: { isEnabled: boolean, keyId: 
   }
 }
 
+export interface StoreInfoInput {
+  storeName: string;
+  storeAddress: string;
+  storeCity: string;
+  storePhone: string;
+  storeEmail: string;
+  storeWebsite: string;
+  storeGstin: string;
+  storePan: string;
+  invoiceGstRate: number;
+  invoicePrefix: string;
+}
+
+export async function updateStoreInfo(
+  data: StoreInfoInput
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const cleanRate =
+      Number.isFinite(data.invoiceGstRate) && data.invoiceGstRate >= 0
+        ? Math.floor(data.invoiceGstRate)
+        : 18;
+
+    const payload = {
+      storeName: data.storeName.trim() || null,
+      storeAddress: data.storeAddress.trim() || null,
+      storeCity: data.storeCity.trim() || null,
+      storePhone: data.storePhone.trim() || null,
+      storeEmail: data.storeEmail.trim() || null,
+      storeWebsite: data.storeWebsite.trim() || null,
+      storeGstin: data.storeGstin.trim().toUpperCase() || null,
+      storePan: data.storePan.trim().toUpperCase() || null,
+      invoiceGstRate: cleanRate,
+      invoicePrefix: data.invoicePrefix.trim().toUpperCase() || "JMC",
+    };
+
+    const existing = await prisma.storeSettings.findFirst();
+    if (existing) {
+      await prisma.storeSettings.update({
+        where: { id: existing.id },
+        data: payload,
+      });
+    } else {
+      await prisma.storeSettings.create({ data: payload });
+    }
+
+    revalidatePath("/admin/profile");
+    revalidatePath("/orders");
+    return { success: true };
+  } catch (error) {
+    console.error("Store Info Update Error:", error);
+    return { success: false, error: "Failed to save store information" };
+  }
+}
+
 export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {
   try {
     const session = await getServerSession(authOptions);

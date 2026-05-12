@@ -13,9 +13,25 @@ export default async function AdminProfilePage() {
     redirect("/login");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email as string },
-  });
+  const [user, settings] = await Promise.all([
+    prisma.user.findUnique({
+      where: { email: session.user.email as string },
+    }),
+    prisma.storeSettings.findFirst({
+      select: {
+        storeName: true,
+        storeAddress: true,
+        storeCity: true,
+        storePhone: true,
+        storeEmail: true,
+        storeWebsite: true,
+        storeGstin: true,
+        storePan: true,
+        invoiceGstRate: true,
+        invoicePrefix: true,
+      },
+    }),
+  ]);
 
   if (!user) return redirect("/login");
 
@@ -27,5 +43,18 @@ export default async function AdminProfilePage() {
     createdAt: user.createdAt.toISOString(),
   };
 
-  return <AdminProfileClient user={safeUser} />;
+  const storeInfo = {
+    storeName: settings?.storeName ?? "",
+    storeAddress: settings?.storeAddress ?? "",
+    storeCity: settings?.storeCity ?? "",
+    storePhone: settings?.storePhone ?? "",
+    storeEmail: settings?.storeEmail ?? "",
+    storeWebsite: settings?.storeWebsite ?? "",
+    storeGstin: settings?.storeGstin ?? "",
+    storePan: settings?.storePan ?? "",
+    invoiceGstRate: settings?.invoiceGstRate ?? 18,
+    invoicePrefix: settings?.invoicePrefix ?? "JMC",
+  };
+
+  return <AdminProfileClient user={safeUser} storeInfo={storeInfo} />;
 }
